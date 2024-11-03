@@ -1,0 +1,59 @@
+[
+    {
+      "id": 1,
+      "title": "Le Petit Prince",
+      "author": "Antoine de Saint-Exupéry",
+      "description": "Un conte poétique et philosophique sur un jeune prince voyageur.",
+      "date": "1943-04-06",
+      "cover": "https://m.media-amazon.com/images/I/61NGp-UxolL._AC_UF1000,1000_QL80_.jpg"
+    },
+    {
+      "id": 2,
+      "title": "1984",
+      "author": "George Orwell",
+      "description": "Un roman dystopique sur la surveillance et le totalitarisme.",
+      "date": "1949-06-08",
+      "cover": "https://static.wikia.nocookie.net/classical-literature/images/6/69/51K84pomCRL._SX305_BO1%2C204%2C203%2C200_.jpg/revision/latest?cb=20190607010448"
+    },
+    {
+      "id": 3,
+      "title": "Fahrenheit 451",
+      "author": "Ray Bradbury",
+      "description": "Un roman sur un futur où les livres sont interdits et brûlés.",
+      "date": "1953-10-19",
+      "cover": "https://upload.wikimedia.org/wikipedia/commons/b/bf/FAHRENHEIT_451_by_Ray_Bradbury%2C_Corgi_1957._160_pages._Cover_by_John_Richards.jpg"
+    },
+    {
+      "id": 4,
+      "title": "To Kill a Mockingbird",
+      "author": "Harper Lee",
+      "description": "Une exploration des thèmes de l'injustice et de la moralité à travers les yeux d'une jeune fille.",
+      "date": "1960-07-11",
+      "cover": "https://cdn.britannica.com/21/182021-050-666DB6B1/book-cover-To-Kill-a-Mockingbird-many-1961.jpg"
+    },
+    {
+      "id": 5,
+      "title": "Pride and Prejudice",
+      "author": "Jane Austen",
+      "description": "Un roman sur les mœurs et les relations sociales au début du XIXe siècle.",
+      "date": "1813-01-28",
+      "cover": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/17/PrideAndPrejudiceTitlePage.jpg/800px-PrideAndPrejudiceTitlePage.jpg"
+    },
+    {
+      "id": 6,
+      "title": "The Great Gatsby",
+      "author": "F. Scott Fitzgerald",
+      "description": "Un roman qui explore les thèmes du rêve américain et de la décadence sociale.",
+      "date": "1925-04-10",
+      "cover": "https://upload.wikimedia.org/wikipedia/commons/7/7a/The_Great_Gatsby_Cover_1925_Retouched.jpg"
+    },
+    {
+      "id": 7,
+      "title": "Moby Dick",
+      "author": "Herman Melville",
+      "description": "Un roman qui raconte l'obsession d'un capitaine pour une baleine blanche.",
+      "date": "1851-10-18",
+      "cover": "https://images.penguinrandomhouse.com/cover/9780143105954"
+    }
+  ]
+  
