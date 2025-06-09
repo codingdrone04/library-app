@@ -6,9 +6,14 @@ const Stack = createStackNavigator();
 
 function AppNavigator() {
   return (
-    <Stack.Navigator initialRouteName="BookList">
-      <Stack.Screen name="BookList" component={BookListScreen} options={{ title: 'Bibliothèque' }} />
-      <Stack.Screen name="BookDetail" component={BookDetailScreen} options={{ title: 'Détail du Livre' }} />
+    <Stack.Navigator 
+      initialRouteName="BookList"
+      screenOptions={{
+        headerShown: false,
+      }}
+    >
+      <Stack.Screen name="BookList" component={BookListScreen} />
+      <Stack.Screen name="BookDetail" component={BookDetailScreen} />
     </Stack.Navigator>
   );
 }
