@@ -2,6 +2,7 @@
 
 # dependencies
 node_modules/
+.packageLock.json
 
 # Expo
 .expo/
@@ -33,3 +34,4 @@ yarn-error.*
 
 # typescript
 *.tsbuildinfo
+package-lock.json
