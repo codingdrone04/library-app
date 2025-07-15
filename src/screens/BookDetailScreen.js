@@ -2,7 +2,6 @@ import React from 'react';
 import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity, FlatList } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import booksData from '../data/books.json';
-import BottomNavigation from '../components/BottomNavigation';
 
 const BookDetailScreen = ({ route, navigation }) => {
   const { bookId } = route.params;
@@ -97,8 +96,6 @@ const BookDetailScreen = ({ route, navigation }) => {
         />
       </ScrollView>
 
-      {/* Barre de navigation */}
-      <BottomNavigation activeTab="home" />
     </View>
   );
 };

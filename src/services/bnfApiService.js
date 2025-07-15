@@ -57,7 +57,7 @@
 
 // Version mockée temporaire
 export const searchBookByTitle = async (title) => {
-    // Simule une recherche avec tes données locales
+    // Simule une recherche avec données locales
     const booksData = require('../data/books.json');
     return booksData.filter(book => 
       book.title.toLowerCase().includes(title.toLowerCase()) ||
