@@ -10,9 +10,9 @@ import LoginScreen from '../screens/LoginScreen';
 import RegisterScreen from '../screens/RegisterScreen';
 import BookListScreen from '../screens/BookListScreen';
 import BookDetailScreen from '../screens/BookDetailScreen';
-// import BorrowedBooksScreen from '../screens/BorrowedBooksScreen';
+import BorrowedBooksScreen from '../screens/BorrowedBooksScreen';
+import ProfileScreen from '../screens/ProfileScreen';
 // TODO: Créer ces écrans
-// import ProfileScreen from '../screens/ProfileScreen';
 // import ScanScreen from '../screens/ScanScreen';
 
 // Context
@@ -57,20 +57,16 @@ const MainTabNavigator = () => {
           backgroundColor: COLORS.background,
           borderTopColor: COLORS.surface,
           borderTopWidth: 1,
-          height: 70,
-          paddingVertical: 0,
+          height: 85,
+          paddingBottom: 15,
+          paddingTop: 8,
         },
-        tabBarShowLabel: false,
-        tabBarItemStyle: {
-          justifyContent: 'center',
-          alignItems: 'center',
-          paddingVertical: 15,
+        tabBarLabelStyle: {
+          fontSize: 11,
+          fontWeight: '600',
+          marginTop: 2,
+          marginBottom: 5,
         },
-        tabBarIconStyle: {
-          marginTop: 0,
-          marginBottom: 0,
-        },
-        tabBarShowLabel: false,
         tabBarActiveTintColor: COLORS.accent,
         tabBarInactiveTintColor: COLORS.textMuted,
         tabBarIcon: ({ focused, color, size }) => {
@@ -86,7 +82,7 @@ const MainTabNavigator = () => {
             iconName = focused ? 'person' : 'person-outline';
           }
 
-          return <Ionicons name={iconName} size={28} color={color} />;
+          return <Ionicons name={iconName} size={24} color={color} />;
         },
       })}
     >
@@ -96,15 +92,18 @@ const MainTabNavigator = () => {
       />
       <Tab.Screen 
         name={ROUTES.BORROWED_BOOKS} 
-        component={() => <PlaceholderScreen title="BorrowedBooksScreen" />}
+        component={BorrowedBooksScreen}
       />
-      <Tab.Screen 
-        name={ROUTES.SCAN} 
-        component={() => <PlaceholderScreen title="Scan" />}
-      />
+      {/* Scan seulement pour les bibliothécaires */}
+      {isLibrarian() && (
+        <Tab.Screen 
+          name={ROUTES.SCAN} 
+          component={() => <PlaceholderScreen title="Scan" />}
+        />
+      )}
       <Tab.Screen 
         name={ROUTES.PROFILE} 
-        component={() => <PlaceholderScreen title="Profile" />}
+        component={ProfileScreen}
       />
     </Tab.Navigator>
   );
