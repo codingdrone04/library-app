@@ -1,4 +1,3 @@
-// src/constants/index.js
 export { COLORS } from './colors';
 export { SPACING, FONT_SIZES, FONT_WEIGHTS } from './spacing';
 

@@ -1,4 +1,3 @@
-// src/constants/colors.js
 export const COLORS = {
     // Primary colors
     primary: '#5A9FD4',

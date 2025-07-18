@@ -1,18 +1,18 @@
-// components/BottomNavigation.js
 import React from 'react';
 import { View, TouchableOpacity, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
+import { ROUTES } from '../constants';
 
 const BottomNavigation = ({ activeTab = 'home' }) => {
   const navigation = useNavigation();
 
   const navigateToHome = () => {
-    navigation.navigate('BookList');
+    navigation.navigate(ROUTES.BOOK_LIST);
   };
 
   const navigateToLibrary = () => {
-    console.log('Navigate to Library');
+    navigation.navigate(ROUTES.BORROWED_BOOKS);
   };
 
   const navigateToScan = () => {
@@ -20,7 +20,7 @@ const BottomNavigation = ({ activeTab = 'home' }) => {
   };
 
   const navigateToProfile = () => {
-    console.log('Navigate to Profile');
+    navigation.navigate(ROUTES.PROFILE);
   };
 
   return (

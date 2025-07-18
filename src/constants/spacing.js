@@ -1,4 +1,3 @@
-// src/constants/spacing.js
 export const SPACING = {
     xs: 4,
     sm: 8,

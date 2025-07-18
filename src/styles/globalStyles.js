@@ -1,4 +1,3 @@
-// src/styles/globalStyles.js
 import { StyleSheet } from 'react-native';
 import { COLORS, SPACING, FONT_SIZES, FONT_WEIGHTS } from '../constants';
 

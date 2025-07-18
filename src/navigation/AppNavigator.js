@@ -1,4 +1,3 @@
-// src/navigation/AppNavigator.js
 import React from 'react';
 import { View, Text, ActivityIndicator } from 'react-native';
 import { createStackNavigator } from '@react-navigation/stack';
@@ -12,8 +11,7 @@ import BookListScreen from '../screens/BookListScreen';
 import BookDetailScreen from '../screens/BookDetailScreen';
 import BorrowedBooksScreen from '../screens/BorrowedBooksScreen';
 import ProfileScreen from '../screens/ProfileScreen';
-// TODO: Créer ces écrans
-// import ScanScreen from '../screens/ScanScreen';
+import ScanScreen from '../screens/ScanScreen';
 
 // Context
 import { useAuth } from '../context/AuthContext';
@@ -89,21 +87,25 @@ const MainTabNavigator = () => {
       <Tab.Screen 
         name={ROUTES.BOOK_LIST} 
         component={BookListScreen}
+        options={{ tabBarLabel: 'Accueil' }}
       />
       <Tab.Screen 
         name={ROUTES.BORROWED_BOOKS} 
         component={BorrowedBooksScreen}
+        options={{ tabBarLabel: 'Mes livres' }}
       />
       {/* Scan seulement pour les bibliothécaires */}
       {isLibrarian() && (
         <Tab.Screen 
           name={ROUTES.SCAN} 
-          component={() => <PlaceholderScreen title="Scan" />}
+          component={ScanScreen}
+          options={{ tabBarLabel: 'Scanner' }}
         />
       )}
       <Tab.Screen 
         name={ROUTES.PROFILE} 
         component={ProfileScreen}
+        options={{ tabBarLabel: 'Profil' }}
       />
     </Tab.Navigator>
   );
