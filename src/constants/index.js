@@ -3,9 +3,27 @@ export { SPACING, FONT_SIZES, FONT_WEIGHTS } from './spacing';
 
 // API Configuration
 export const API_CONFIG = {
-  BASE_URL: 'http://localhost:3000/api',
-  BNF_API_URL: 'http://catalogue.bnf.fr/api/SRU?version=1.2&operation=searchRetrieve',
+  BASE_URL: 'http://localhost:3000/api', // Développement
+  // BASE_URL: 'https://your-backend.herokuapp.com/api', // Production
   TIMEOUT: 10000,
+  
+  // Endpoints
+  ENDPOINTS: {
+    // Livres
+    BOOKS: '/books',
+    BOOKS_POPULAR: '/books/popular',
+    BOOKS_RECENT: '/books/recent',
+    BOOKS_STATS: '/books/stats',
+    BOOKS_SEARCH: '/books/search/suggestions',
+    
+    // Auth (futur)
+    LOGIN: '/auth/login',
+    REGISTER: '/auth/register',
+    
+    // Emprunts (futur)
+    LOANS: '/loans',
+    USER_LOANS: '/loans/user',
+  }
 };
 
 // App Configuration

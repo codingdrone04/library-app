@@ -28,7 +28,8 @@
     "react-native-screens": "~4.8.0",
     "react-native-web": "^0.20.0",
     "react-native-xml2js": "^1.0.3",
-    "xml2js": "^0.6.2"
+    "xml2js": "^0.6.2",
+    "expo-constants": "~17.0.8"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0"

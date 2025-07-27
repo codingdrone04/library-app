@@ -8,11 +8,13 @@ import {
   FlatList, 
   TouchableOpacity, 
   Image,
-  RefreshControl 
+  RefreshControl,
+  ActivityIndicator 
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../context/AuthContext';
-import { searchBookByTitle } from '../services/bnfApiService';
+import bookService from '../services/bookService';
+import mockDataService from '../services/mockDataService';
 import { COLORS, SPACING, ROUTES } from '../constants';
 import { globalStyles } from '../styles/globalStyles';
 
@@ -24,62 +26,60 @@ const BookListScreen = ({ navigation }) => {
   const [newBooks, setNewBooks] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [searchLoading, setSearchLoading] = useState(false);
+  const [isInitializing, setIsInitializing] = useState(true);
 
   useEffect(() => {
-    loadInitialData();
+    initializeAndLoadData();
   }, []);
+
+  const initializeAndLoadData = async () => {
+    try {
+      setIsInitializing(true);
+      
+      // S'assurer que les données sont initialisées
+      await mockDataService.initializeData();
+      
+      // Charger les données
+      await loadInitialData();
+    } catch (error) {
+      console.error('Error initializing app:', error);
+    } finally {
+      setIsInitializing(false);
+    }
+  };
 
   const loadInitialData = async () => {
     try {
-      // TODO: Remplacer par de vrais appels API
-      setPopularBooks([
-        { 
-          id: 1, 
-          title: 'Le Petit Prince', 
-          author: 'Antoine de Saint-Exupéry', 
-          cover: 'https://m.media-amazon.com/images/I/61NGp-UxolL._AC_UF1000,1000_QL80_.jpg',
-          status: 'available'
-        },
-        { 
-          id: 2, 
-          title: '1984', 
-          author: 'George Orwell', 
-          cover: 'https://static.wikia.nocookie.net/classical-literature/images/6/69/51K84pomCRL._SX305_BO1%2C204%2C203%2C200_.jpg/revision/latest?cb=20190607010448',
-          status: 'available'
-        },
-        { 
-          id: 3, 
-          title: 'Fahrenheit 451', 
-          author: 'Ray Bradbury', 
-          cover: 'https://upload.wikimedia.org/wikipedia/commons/b/bf/FAHRENHEIT_451_by_Ray_Bradbury%2C_Corgi_1957._160_pages._Cover_by_John_Richards.jpg',
-          status: 'borrowed'
-        },
-      ]);
-
-      setNewBooks([
-        {
-          id: 4,
-          title: 'The Psychology of Programming',
-          author: 'Gerald M. Weinberg',
-          genre: 'Technology',
-          description: 'A comprehensive guide to understanding the human aspects of programming and software development.',
-          cover: null,
-          status: 'available',
-          publishedYear: 2023,
-        },
-        {
-          id: 5,
-          title: 'Clean Architecture',
-          author: 'Robert C. Martin',
-          genre: 'Technology',
-          description: 'A comprehensive guide to building maintainable and scalable software systems.',
-          cover: 'https://images-na.ssl-images-amazon.com/images/I/411csr6Ef7L._SX376_BO1,204,203,200_.jpg',
-          status: 'available',
-          publishedYear: 2023,
-        }
-      ]);
+      console.log('📚 Chargement des livres de la bibliothèque...');
+      
+      // Charger tous les livres de la bibliothèque locale (enrichis avec Google Books)
+      const allBooks = await bookService.getLibraryBooks();
+      console.log('✅ Livres chargés:', allBooks.length);
+      
+      if (allBooks.length === 0) {
+        console.warn('⚠️ Aucun livre trouvé, initialisation...');
+        await mockDataService.resetLibrary();
+        const newBooks = await bookService.getLibraryBooks();
+        allBooks.push(...newBooks);
+      }
+      
+      // Séparer en populaires et nouveaux
+      const availableBooks = allBooks.filter(book => book.status === 'available');
+      const recentBooks = allBooks.filter(book => {
+        const acquisitionDate = new Date(book.acquisitionDate);
+        const oneMonthAgo = new Date();
+        oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
+        return acquisitionDate > oneMonthAgo;
+      });
+      
+      setPopularBooks(availableBooks.slice(0, 6)); // Les 6 premiers disponibles
+      setNewBooks(recentBooks.slice(0, 5)); // Les 5 plus récents
+      
+      console.log('📊 Popular books:', availableBooks.length);
+      console.log('🆕 New books:', recentBooks.length);
     } catch (error) {
-      console.error('Error loading initial data:', error);
+      console.error('❌ Error loading initial data:', error);
     }
   };
 
@@ -94,15 +94,20 @@ const BookListScreen = ({ navigation }) => {
     setIsSearching(term.length > 0);
 
     if (term.length > 2) {
+      setSearchLoading(true);
       try {
-        const results = await searchBookByTitle(term);
+        // Recherche dans la bibliothèque locale uniquement
+        const results = await bookService.searchLibraryBooks(term);
         setSearchResults(results || []);
       } catch (error) {
         console.error('Search error:', error);
         setSearchResults([]);
+      } finally {
+        setSearchLoading(false);
       }
     } else {
       setSearchResults([]);
+      setSearchLoading(false);
     }
   };
 
@@ -128,9 +133,9 @@ const BookListScreen = ({ navigation }) => {
         };
       default:
         return {
-          color: COLORS.textMuted,
-          text: 'Unknown',
-          icon: 'help-circle'
+          color: COLORS.success,
+          text: 'Available',
+          icon: 'checkmark-circle'
         };
     }
   };
@@ -156,12 +161,15 @@ const BookListScreen = ({ navigation }) => {
           <Ionicons name="search" size={20} color={COLORS.textMuted} style={styles.searchIcon} />
           <TextInput
             style={styles.searchInput}
-            placeholder="Find a book"
+            placeholder="Rechercher un livre..."
             onChangeText={handleSearch}
             value={searchTerm}
             placeholderTextColor={COLORS.textPlaceholder}
           />
-          {searchTerm.length > 0 && (
+          {searchLoading && (
+            <ActivityIndicator size="small" color={COLORS.primary} style={{ marginRight: 10 }} />
+          )}
+          {searchTerm.length > 0 && !searchLoading && (
             <TouchableOpacity 
               onPress={() => handleSearch('')}
               style={styles.clearButton}
@@ -180,13 +188,19 @@ const BookListScreen = ({ navigation }) => {
     return (
       <TouchableOpacity 
         style={styles.popularBookCard}
-        onPress={() => navigation.navigate(ROUTES.BOOK_DETAIL, { bookId: item.id })}
+        onPress={() => navigation.navigate(ROUTES.BOOK_DETAIL, { book: item })}
       >
-        <Image 
-          source={{ uri: item.cover }} 
-          style={styles.popularBookImage}
-          resizeMode="cover"
-        />
+        {item.cover ? (
+          <Image 
+            source={{ uri: item.cover }} 
+            style={styles.popularBookImage}
+            resizeMode="cover"
+          />
+        ) : (
+          <View style={[styles.popularBookImage, styles.placeholderImage]}>
+            <Ionicons name="book" size={40} color={COLORS.textPrimary} />
+          </View>
+        )}
         <View style={styles.popularBookInfo}>
           <Text style={styles.popularBookTitle} numberOfLines={2}>{item.title}</Text>
           <Text style={styles.popularBookAuthor} numberOfLines={1}>{item.author}</Text>
@@ -213,7 +227,7 @@ const BookListScreen = ({ navigation }) => {
     return (
       <TouchableOpacity 
         style={styles.newBookCard}
-        onPress={() => navigation.navigate(ROUTES.BOOK_DETAIL, { bookId: item.id })}
+        onPress={() => navigation.navigate(ROUTES.BOOK_DETAIL, { book: item })}
       >
         <View style={styles.newBookImageContainer}>
           {item.cover ? (
@@ -241,9 +255,11 @@ const BookListScreen = ({ navigation }) => {
           </View>
           
           <Text style={styles.newBookAuthor}>{item.author}</Text>
-          <Text style={styles.newBookGenre}>{item.genre} • {item.publishedYear}</Text>
+          <Text style={styles.newBookGenre}>
+            {item.genre} {item.acquisitionDate && `• Ajouté le ${new Date(item.acquisitionDate).toLocaleDateString()}`}
+          </Text>
           <Text style={styles.newBookDescription} numberOfLines={3}>
-            {item.description}
+            {item.description || 'Aucune description disponible'}
           </Text>
         </View>
       </TouchableOpacity>
@@ -253,13 +269,24 @@ const BookListScreen = ({ navigation }) => {
   const renderSearchResult = ({ item }) => (
     <TouchableOpacity 
       style={styles.searchResultCard}
-      onPress={() => navigation.navigate(ROUTES.BOOK_DETAIL, { bookId: item.id })}
+      onPress={() => navigation.navigate(ROUTES.BOOK_DETAIL, { book: item })}
     >
-      <Image source={{ uri: item.cover }} style={styles.searchResultImage} />
+      {item.cover ? (
+        <Image source={{ uri: item.cover }} style={styles.searchResultImage} />
+      ) : (
+        <View style={[styles.searchResultImage, styles.placeholderImage]}>
+          <Ionicons name="book" size={24} color={COLORS.textPrimary} />
+        </View>
+      )}
       <View style={styles.searchResultInfo}>
-        <Text style={styles.searchResultTitle}>{item.title}</Text>
-        <Text style={styles.searchResultAuthor}>{item.author}</Text>
+        <Text style={styles.searchResultTitle} numberOfLines={2}>{item.title}</Text>
+        <Text style={styles.searchResultAuthor} numberOfLines={1}>{item.author}</Text>
         {item.genre && <Text style={styles.searchResultGenre}>{item.genre}</Text>}
+        {item.publishedDate && (
+          <Text style={styles.searchResultYear}>
+            {new Date(item.publishedDate).getFullYear()}
+          </Text>
+        )}
       </View>
     </TouchableOpacity>
   );
@@ -271,7 +298,12 @@ const BookListScreen = ({ navigation }) => {
           <Text style={styles.sectionTitle}>
             Résultats de recherche ({searchResults.length})
           </Text>
-          {searchResults.length > 0 ? (
+          {searchLoading ? (
+            <View style={styles.loadingContainer}>
+              <ActivityIndicator size="large" color={COLORS.primary} />
+              <Text style={styles.loadingText}>Recherche en cours...</Text>
+            </View>
+          ) : searchResults.length > 0 ? (
             <FlatList
               data={searchResults}
               renderItem={renderSearchResult}
@@ -323,27 +355,54 @@ const BookListScreen = ({ navigation }) => {
 
   return (
     <View style={globalStyles.container}>
-      <ScrollView 
-        style={styles.container}
-        refreshControl={
-          <RefreshControl
-            refreshing={isRefreshing}
-            onRefresh={onRefresh}
-            tintColor={COLORS.primary}
-            colors={[COLORS.primary]}
-          />
-        }
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.scrollContent}
-      >
-        {renderHeader()}
-        {renderContent()}
-      </ScrollView>
+      {isInitializing ? (
+        <View style={styles.initializingContainer}>
+          <ActivityIndicator size="large" color={COLORS.primary} />
+          <Text style={styles.initializingText}>Initialisation de la bibliothèque...</Text>
+          <Text style={styles.initializingSubtext}>
+            Chargement des livres depuis Google Books
+          </Text>
+        </View>
+      ) : (
+        <ScrollView 
+          style={styles.container}
+          refreshControl={
+            <RefreshControl
+              refreshing={isRefreshing}
+              onRefresh={onRefresh}
+              tintColor={COLORS.primary}
+              colors={[COLORS.primary]}
+            />
+          }
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.scrollContent}
+        >
+          {renderHeader()}
+          {renderContent()}
+        </ScrollView>
+      )}
     </View>
   );
 };
 
 const styles = StyleSheet.create({
+  initializingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: SPACING.xl,
+  },
+  initializingText: {
+    ...globalStyles.title,
+    fontSize: 18,
+    marginTop: SPACING.lg,
+    textAlign: 'center',
+  },
+  initializingSubtext: {
+    ...globalStyles.body,
+    textAlign: 'center',
+    marginTop: SPACING.sm,
+  },
   container: {
     flex: 1,
   },
@@ -426,6 +485,11 @@ const styles = StyleSheet.create({
     borderRadius: SPACING.cardRadius,
     marginBottom: SPACING.sm,
   },
+  placeholderImage: {
+    backgroundColor: COLORS.accent,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   popularBookInfo: {
     flex: 1,
   },
@@ -478,14 +542,6 @@ const styles = StyleSheet.create({
     width: 70,
     height: 100,
     borderRadius: SPACING.imageRadius,
-  },
-  placeholderImage: {
-    width: 70,
-    height: 100,
-    backgroundColor: COLORS.accent,
-    borderRadius: SPACING.imageRadius,
-    justifyContent: 'center',
-    alignItems: 'center',
   },
   newBookInfo: {
     flex: 1,
@@ -547,6 +603,19 @@ const styles = StyleSheet.create({
   },
   searchResultGenre: {
     ...globalStyles.caption,
+  },
+  searchResultYear: {
+    ...globalStyles.caption,
+    fontSize: 11,
+    fontStyle: 'italic',
+  },
+  loadingContainer: {
+    alignItems: 'center',
+    paddingVertical: SPACING.xl,
+  },
+  loadingText: {
+    ...globalStyles.body,
+    marginTop: SPACING.md,
   },
   noResults: {
     alignItems: 'center',
