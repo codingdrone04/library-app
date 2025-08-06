@@ -22,13 +22,13 @@ async function startServer() {
     // Démarrage du serveur
     const server = app.listen(PORT, () => {
       console.log(`
-🎉 ========================================
-📚 Library API Server is running!
-🌐 Port: ${PORT}
-🔗 Local: http://localhost:${PORT}
-📊 Health: http://localhost:${PORT}/health
-🔧 Environment: ${process.env.NODE_ENV || 'development'}
-========================================
+    🎉 ========================================
+    📚 Library API Server is running!
+    🌐 Port: ${PORT}
+    🔗 Local: http://localhost:${PORT}
+    📊 Health: http://localhost:${PORT}/health
+    🔧 Environment: ${process.env.NODE_ENV || 'development'}
+    ========================================
       `);
     });
 

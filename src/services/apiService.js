@@ -1,12 +1,21 @@
 import axios from 'axios';
+import { Platform } from 'react-native';
+import Constants from 'expo-constants';
 import { API_CONFIG } from '../constants';
+
+// Import du config local (à gitignorer)
+let localConfig = null;
+try {
+  localConfig = require('../config/local').LOCAL_CONFIG;
+} catch (error) {
+  // Fichier local pas trouvé, on continue sans
+  console.log('📍 Fichier config local non trouvé, utilisation auto-détection');
+}
 
 class ApiService {
   constructor() {
-    // Configuration de base
-    this.baseURL = __DEV__ 
-      ? 'http://localhost:3000/api'  // Développement
-      : API_CONFIG.BASE_URL;         // Production
+    // Configuration dynamique de l'URL
+    this.baseURL = this.determineBaseURL();
     
     // Instance axios
     this.api = axios.create({
@@ -17,12 +26,57 @@ class ApiService {
       }
     });
 
+    console.log('🌐 API Base URL:', this.baseURL);
+    
     // Intercepteurs pour logging et gestion d'erreurs
     this.setupInterceptors();
   }
 
+  determineBaseURL() {
+    if (__DEV__) {
+      if (Platform.OS === 'android') {
+        // 1. Utiliser le config local si disponible
+        if (localConfig?.API_HOST) {
+          console.log('📍 Utilisation config local:', localConfig.API_HOST);
+          return `http://${localConfig.API_HOST}:${localConfig.API_PORT || '3000'}/api`;
+        }
+        
+        // 2. Essayer l'IP locale détectée automatiquement
+        const { manifest } = Constants;
+        if (manifest?.debuggerHost) {
+          const localIP = manifest.debuggerHost.split(':')[0];
+          console.log('📍 IP locale détectée:', localIP);
+          return `http://${localIP}:3000/api`;
+        }
+        
+        // 3. Fallback vers l'émulateur Android standard
+        console.log('📍 Fallback vers IP émulateur Android: 10.0.2.2');
+        return 'http://10.0.2.2:3000/api';
+      } else if (Platform.OS === 'ios') {
+        // Pour le simulateur iOS
+        return `http://localhost:3000/api`;
+      } else {
+        // Pour le web ou autre
+        return `http://localhost:3000/api`;
+      }
+    } else {
+      // En production, utiliser l'URL de production
+      return API_CONFIG.BASE_URL;
+    }
+  }
+
+  getLocalIP() {
+    // Récupère l'IP locale via Expo Constants
+    const { manifest } = Constants;
+    if (manifest?.debuggerHost) {
+      const ip = manifest.debuggerHost.split(':')[0];
+      return `http://${ip}:3000/api`;
+    }
+    return 'http://localhost:3000/api';
+  }
+
   setupInterceptors() {
-    // Request interceptor - pour ajouter auth token plus tard
+    // Request interceptor
     this.api.interceptors.request.use(
       (config) => {
         console.log(`🌐 API Request: ${config.method?.toUpperCase()} ${config.url}`);
@@ -41,18 +95,23 @@ class ApiService {
       }
     );
 
-    // Response interceptor - pour gérer les erreurs globalement
+    // Response interceptor
     this.api.interceptors.response.use(
       (response) => {
         console.log(`✅ API Response: ${response.status} ${response.config.url}`);
         return response;
       },
       (error) => {
-        console.error('❌ API Error:', error.response?.data || error.message);
+        // Log plus détaillé pour débugger
+        if (error.code === 'NETWORK_ERROR' || error.message === 'Network Error') {
+          console.error('❌ Connexion impossible au serveur:', this.baseURL);
+          console.error('💡 Vérifiez que le serveur backend est démarré');
+        } else {
+          console.error('❌ API Error:', error.response?.data || error.message);
+        }
         
         // Gestion des erreurs communes
         if (error.response?.status === 401) {
-          // TODO: Rediriger vers login
           console.log('🔐 Auth required - redirect to login');
         }
         
@@ -72,9 +131,10 @@ class ApiService {
     } else if (error.request) {
       // Pas de réponse (problème réseau)
       return {
-        message: 'Impossible de se connecter au serveur. Vérifiez votre connexion.',
+        message: `Impossible de se connecter au serveur (${this.baseURL}). Vérifiez que le backend est démarré.`,
         status: 0,
-        network: true
+        network: true,
+        baseURL: this.baseURL
       };
     } else {
       // Autre erreur
@@ -85,9 +145,29 @@ class ApiService {
     }
   }
 
-  // ===== MÉTHODES LIVRES =====
+  // ===== TEST DE CONNEXION =====
+  async testConnection() {
+    try {
+      console.log('🔍 Test de connexion à:', this.baseURL);
+      const response = await this.api.get('/books/stats');
+      
+      return {
+        success: true,
+        message: 'Connexion API réussie',
+        stats: response.data.data,
+        baseURL: this.baseURL
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: `Impossible de se connecter à l'API (${this.baseURL})`,
+        error: error.message,
+        baseURL: this.baseURL
+      };
+    }
+  }
 
-  // Récupérer tous les livres avec filtres et pagination
+
   async getBooks(options = {}) {
     try {
       const {
@@ -125,7 +205,6 @@ class ApiService {
     }
   }
 
-  // Récupérer les livres populaires
   async getPopularBooks(limit = 10) {
     try {
       const response = await this.api.get('/books/popular', {
@@ -138,7 +217,6 @@ class ApiService {
     }
   }
 
-  // Récupérer les nouveautés
   async getRecentBooks(limit = 10) {
     try {
       const response = await this.api.get('/books/recent', {
@@ -151,7 +229,6 @@ class ApiService {
     }
   }
 
-  // Rechercher des livres
   async searchBooks(query, options = {}) {
     try {
       const params = {
@@ -167,7 +244,6 @@ class ApiService {
     }
   }
 
-  // Obtenir suggestions d'autocomplétion
   async getSearchSuggestions(query) {
     try {
       const response = await this.api.get('/books/search/suggestions', {
@@ -180,7 +256,6 @@ class ApiService {
     }
   }
 
-  // Récupérer un livre par ID
   async getBookById(id) {
     try {
       const response = await this.api.get(`/books/${id}`);
@@ -191,7 +266,6 @@ class ApiService {
     }
   }
 
-  // Ajouter un nouveau livre (bibliothécaires)
   async addBook(bookData) {
     try {
       const response = await this.api.post('/books', bookData);
@@ -206,7 +280,6 @@ class ApiService {
     }
   }
 
-  // Modifier un livre
   async updateBook(id, bookData) {
     try {
       const response = await this.api.put(`/books/${id}`, bookData);
@@ -220,7 +293,6 @@ class ApiService {
     }
   }
 
-  // Supprimer un livre
   async deleteBook(id) {
     try {
       const response = await this.api.delete(`/books/${id}`);
@@ -234,7 +306,6 @@ class ApiService {
     }
   }
 
-  // Enrichir un livre avec Google Books
   async enrichBook(id) {
     try {
       const response = await this.api.post(`/books/${id}/enrich`);
@@ -249,7 +320,6 @@ class ApiService {
     }
   }
 
-  // Obtenir statistiques de la bibliothèque
   async getLibraryStats() {
     try {
       const response = await this.api.get('/books/stats');
@@ -262,10 +332,8 @@ class ApiService {
 
   // ===== MÉTHODES EMPRUNTS (TODO) =====
 
-  // Emprunter un livre
   async borrowBook(bookId, userId) {
     try {
-      // TODO: Implémenter quand on aura les routes d'emprunts
       const response = await this.api.post('/loans', {
         bookId,
         userId
@@ -277,10 +345,8 @@ class ApiService {
     }
   }
 
-  // Retourner un livre
   async returnBook(bookId, userId) {
     try {
-      // TODO: Implémenter quand on aura les routes d'emprunts
       const response = await this.api.patch(`/loans/${bookId}/return`, {
         userId
       });
@@ -291,10 +357,8 @@ class ApiService {
     }
   }
 
-  // Récupérer les livres empruntés par un utilisateur
   async getUserBorrowedBooks(userId) {
     try {
-      // TODO: Implémenter quand on aura les routes d'emprunts
       const response = await this.api.get(`/loans/user/${userId}`);
       
       return response.data.data;
@@ -305,7 +369,6 @@ class ApiService {
 
   // ===== MÉTHODES UTILISATEURS (TODO) =====
 
-  // Login
   async login(username, password) {
     try {
       const response = await this.api.post('/auth/login', {
@@ -319,7 +382,6 @@ class ApiService {
     }
   }
 
-  // Register
   async register(userData) {
     try {
       const response = await this.api.post('/auth/register', userData);
@@ -331,32 +393,11 @@ class ApiService {
   }
 
   // ===== UTILITAIRES =====
-
-  // Test de connexion
-  async testConnection() {
-    try {
-      const response = await this.api.get('/books/stats');
-      
-      return {
-        success: true,
-        message: 'Connexion API réussie',
-        stats: response.data.data
-      };
-    } catch (error) {
-      return {
-        success: false,
-        message: 'Impossible de se connecter à l\'API',
-        error: error.message
-      };
-    }
-  }
-
-  // Obtenir l'URL de base
+  
   getBaseURL() {
     return this.baseURL;
   }
 
-  // Vérifier si on est en développement
   isDevelopment() {
     return __DEV__;
   }
