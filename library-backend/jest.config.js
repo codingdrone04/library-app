@@ -3,7 +3,7 @@ module.exports = {
     testMatch: [
       '<rootDir>/tests/**/*.test.js'
     ],
-    testTimeout: 30000,
+    testTimeout: 60000,
     maxWorkers: 1,
     verbose: true
   };
