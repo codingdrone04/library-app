@@ -1,6 +1,6 @@
 const app = require('./app');
 const connectMongoDB = require('./config/mongodb');
-const connectMySQL = require('./config/mysql');
+const connectPostgreSQL = require('./config/postgresql'); // ← CHANGEMENT ICI
 
 const PORT = process.env.PORT || 3000;
 
@@ -14,13 +14,13 @@ async function startServer() {
     await connectMongoDB();
     console.log('✅ MongoDB connecté !');
     
-    // Connexion MySQL (pour les utilisateurs et emprunts)
-    console.log('👥 Connexion à MySQL...');
-    await connectMySQL();
-    console.log('✅ MySQL connecté !');
+    // Connexion PostgreSQL (pour les utilisateurs et emprunts)
+    console.log('🐘 Connexion à PostgreSQL...');
+    await connectPostgreSQL(); // ← CHANGEMENT ICI
+    console.log('✅ PostgreSQL connecté !');
     
     // Démarrage du serveur
-    const server = app.listen(PORT, () => {
+    const server = app.listen(PORT, '0.0.0.0', () => {
       console.log(`
     🎉 ========================================
     📚 Library API Server is running!
@@ -28,6 +28,8 @@ async function startServer() {
     🔗 Local: http://localhost:${PORT}
     📊 Health: http://localhost:${PORT}/health
     🔧 Environment: ${process.env.NODE_ENV || 'development'}
+    🐘 PostgreSQL: Connected
+    📚 MongoDB: Connected
     ========================================
       `);
     });
