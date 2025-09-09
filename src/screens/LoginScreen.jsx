@@ -8,7 +8,8 @@ import {
   Alert,
   KeyboardAvoidingView,
   Platform,
-  ScrollView 
+  ScrollView,
+  ActivityIndicator
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../context/AuthContext';
@@ -16,11 +17,12 @@ import { COLORS, SPACING, ROUTES } from '../constants';
 import { globalStyles } from '../styles/globalStyles';
 
 const LoginScreen = ({ navigation }) => {
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
+  const [username, setUsername] = useState('admin');
+  const [password, setPassword] = useState('admin');
   const [showPassword, setShowPassword] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
-  const { login, isLoading, error, clearError } = useAuth();
+  const { login, isLoading, error, clearError, isAuthenticated } = useAuth();
 
   // Clear error when component mounts or when inputs change
   useEffect(() => {
@@ -29,7 +31,17 @@ const LoginScreen = ({ navigation }) => {
     }
   }, [username, password]);
 
+  // Rediriger si déjà connecté
+  useEffect(() => {
+    if (isAuthenticated) {
+      console.log('✅ Utilisateur déjà connecté, redirection...');
+      navigation.replace('MainTabs');
+    }
+  }, [isAuthenticated, navigation]);
+
   const handleLogin = async () => {
+    console.log('🔐 Tentative de connexion...', { username, password: '***' });
+    
     // Basic validation
     if (!username.trim()) {
       Alert.alert('Erreur', 'Veuillez saisir votre nom d\'utilisateur');
@@ -41,15 +53,33 @@ const LoginScreen = ({ navigation }) => {
       return;
     }
 
+    setIsSubmitting(true);
+
     try {
-      await login(username.trim(), password);
+      console.log('📤 Envoi des données de connexion...');
+      const result = await login(username.trim(), password);
       
-      // Navigation will be handled by the AuthNavigator
-      Alert.alert('Succès', 'Connexion réussie !', [
-        { text: 'OK', onPress: () => navigation.navigate(ROUTES.BOOK_LIST) }
-      ]);
+      console.log('✅ Connexion réussie:', result);
+      
+      Alert.alert(
+        'Connexion réussie !', 
+        `Bienvenue ${result.user.firstname} !`,
+        [
+          { 
+            text: 'OK', 
+            onPress: () => {
+              console.log('🏠 Navigation vers MainTabs...');
+              navigation.replace('MainTabs');
+            }
+          }
+        ]
+      );
+      
     } catch (error) {
+      console.error('❌ Erreur de connexion:', error);
       Alert.alert('Erreur de connexion', error.message);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -65,6 +95,8 @@ const LoginScreen = ({ navigation }) => {
     );
   };
 
+  const isLoginDisabled = isLoading || isSubmitting || !username.trim() || !password.trim();
+
   return (
     <KeyboardAvoidingView 
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'} 
@@ -78,6 +110,7 @@ const LoginScreen = ({ navigation }) => {
           {/* Header */}
           <View style={styles.header}>
             <Text style={globalStyles.pageTitle}>SIGN IN</Text>
+            <Text style={styles.subtitle}>Connectez-vous à votre compte</Text>
           </View>
 
           {/* Form */}
@@ -92,13 +125,14 @@ const LoginScreen = ({ navigation }) => {
               />
               <TextInput
                 style={globalStyles.input}
-                placeholder="Username"
+                placeholder="Nom d'utilisateur"
                 placeholderTextColor={COLORS.textPlaceholder}
                 value={username}
                 onChangeText={setUsername}
                 autoCapitalize="none"
                 autoCorrect={false}
                 autoComplete="username"
+                editable={!isLoginDisabled}
               />
             </View>
 
@@ -112,7 +146,7 @@ const LoginScreen = ({ navigation }) => {
               />
               <TextInput
                 style={globalStyles.input}
-                placeholder="Password"
+                placeholder="Mot de passe"
                 placeholderTextColor={COLORS.textPlaceholder}
                 value={password}
                 onChangeText={setPassword}
@@ -120,10 +154,12 @@ const LoginScreen = ({ navigation }) => {
                 autoCapitalize="none"
                 autoCorrect={false}
                 autoComplete="password"
+                editable={!isLoginDisabled}
               />
               <TouchableOpacity 
                 onPress={() => setShowPassword(!showPassword)}
                 style={styles.eyeIcon}
+                disabled={isLoginDisabled}
               >
                 <Ionicons 
                   name={showPassword ? "eye-outline" : "eye-off-outline"} 
@@ -137,39 +173,61 @@ const LoginScreen = ({ navigation }) => {
             <TouchableOpacity 
               onPress={handleForgotPassword}
               style={styles.forgotPasswordContainer}
+              disabled={isLoginDisabled}
             >
-              <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
+              <Text style={styles.forgotPasswordText}>Mot de passe oublié ?</Text>
             </TouchableOpacity>
 
             {/* Login Button */}
             <TouchableOpacity 
               style={[
                 globalStyles.primaryButton, 
-                isLoading && styles.buttonDisabled,
+                isLoginDisabled && styles.buttonDisabled,
                 styles.loginButton
               ]}
               onPress={handleLogin}
-              disabled={isLoading}
+              disabled={isLoginDisabled}
             >
-              <Text style={globalStyles.primaryButtonText}>
-                {isLoading ? 'Connexion...' : 'Login'}
-              </Text>
+              {isSubmitting || isLoading ? (
+                <View style={styles.loadingContainer}>
+                  <ActivityIndicator color={COLORS.textPrimary} size="small" />
+                  <Text style={[globalStyles.primaryButtonText, styles.loadingText]}>
+                    Connexion...
+                  </Text>
+                </View>
+              ) : (
+                <Text style={globalStyles.primaryButtonText}>Se connecter</Text>
+              )}
             </TouchableOpacity>
 
             {/* Register Link */}
             <View style={styles.registerContainer}>
-              <Text style={styles.registerText}>Don't have an account? </Text>
-              <TouchableOpacity onPress={navigateToRegister}>
-                <Text style={styles.registerLink}>Register Here</Text>
+              <Text style={styles.registerText}>Pas de compte ? </Text>
+              <TouchableOpacity 
+                onPress={navigateToRegister}
+                disabled={isLoginDisabled}
+              >
+                <Text style={styles.registerLink}>S'inscrire</Text>
               </TouchableOpacity>
             </View>
 
             {/* Demo Accounts Info */}
             <View style={styles.demoContainer}>
-              <Text style={styles.demoTitle}>Comptes de démonstration :</Text>
-              <Text style={styles.demoText}>👨‍💼 Bibliothécaire: admin / admin</Text>
+              <Text style={styles.demoTitle}>Comptes de test :</Text>
+              <Text style={styles.demoText}>👨‍💼 Admin: admin / admin</Text>
               <Text style={styles.demoText}>👤 Utilisateur: user / user</Text>
             </View>
+
+            {/* Debug Info */}
+            {__DEV__ && (
+              <View style={styles.debugContainer}>
+                <Text style={styles.debugTitle}>Debug Info:</Text>
+                <Text style={styles.debugText}>Loading: {isLoading ? 'Oui' : 'Non'}</Text>
+                <Text style={styles.debugText}>Submitting: {isSubmitting ? 'Oui' : 'Non'}</Text>
+                <Text style={styles.debugText}>Authenticated: {isAuthenticated ? 'Oui' : 'Non'}</Text>
+                {error && <Text style={styles.debugError}>Erreur: {error}</Text>}
+              </View>
+            )}
           </View>
         </View>
       </ScrollView>
@@ -189,7 +247,13 @@ const styles = StyleSheet.create({
   },
   header: {
     alignItems: 'center',
-    marginBottom: SPACING.xxxl + SPACING.lg,
+    marginBottom: SPACING.xxxl,
+  },
+  subtitle: {
+    color: COLORS.textSecondary,
+    fontSize: 16,
+    marginTop: SPACING.md,
+    textAlign: 'center',
   },
   form: {
     width: '100%',
@@ -209,10 +273,19 @@ const styles = StyleSheet.create({
   loginButton: {
     marginTop: SPACING.md,
   },
+  loadingContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  loadingText: {
+    marginLeft: SPACING.sm,
+  },
   buttonDisabled: {
     backgroundColor: COLORS.surfaceLight,
     shadowOpacity: 0,
     elevation: 0,
+    opacity: 0.6,
   },
   registerContainer: {
     flexDirection: 'row',
@@ -246,6 +319,30 @@ const styles = StyleSheet.create({
     color: COLORS.textSecondary,
     fontSize: 12,
     marginBottom: SPACING.xs,
+  },
+  debugContainer: {
+    marginTop: SPACING.lg,
+    padding: SPACING.md,
+    backgroundColor: COLORS.warning + '20',
+    borderRadius: SPACING.cardRadius,
+    borderWidth: 1,
+    borderColor: COLORS.warning,
+  },
+  debugTitle: {
+    color: COLORS.warning,
+    fontSize: 12,
+    fontWeight: '600',
+    marginBottom: SPACING.sm,
+  },
+  debugText: {
+    color: COLORS.textPrimary,
+    fontSize: 11,
+    marginBottom: SPACING.xs,
+  },
+  debugError: {
+    color: COLORS.error,
+    fontSize: 11,
+    fontWeight: '600',
   },
 });
 

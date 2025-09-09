@@ -195,3 +195,141 @@ export const globalStyles = StyleSheet.create({
   ph_md: { paddingHorizontal: SPACING.md },
   ph_lg: { paddingHorizontal: SPACING.lg },
 });
+
+// ✅ ENSUITE : Mixins (après que globalStyles soit déclaré)
+export const mixins = {
+  // Mixin pour boutons avec variantes
+  button: (variant = 'primary', size = 'default') => {
+    const baseButton = {
+      borderRadius: SPACING.borderRadius,
+      justifyContent: 'center',
+      alignItems: 'center',
+      shadowColor: COLORS.primary,
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.3,
+      shadowRadius: 8,
+      elevation: 8,
+    };
+
+    const sizes = {
+      small: { 
+        height: 40, 
+        paddingHorizontal: SPACING.md 
+      },
+      default: { 
+        height: SPACING.buttonHeight, 
+        paddingHorizontal: SPACING.containerPadding 
+      },
+      large: { 
+        height: 60, 
+        paddingHorizontal: SPACING.xl 
+      },
+    };
+
+    const variants = {
+      primary: {
+        backgroundColor: COLORS.primary,
+      },
+      secondary: {
+        backgroundColor: 'transparent',
+        borderWidth: 2,
+        borderColor: COLORS.primary,
+        shadowOpacity: 0,
+        elevation: 0,
+      },
+      accent: {
+        backgroundColor: COLORS.accent,
+      },
+      danger: {
+        backgroundColor: COLORS.error,
+      }
+    };
+
+    return {
+      ...baseButton,
+      ...sizes[size],
+      ...variants[variant],
+    };
+  },
+
+  // Mixin pour inputs avec état d'erreur
+  input: (hasError = false) => ({
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: COLORS.surface,
+    borderRadius: SPACING.borderRadius,
+    marginBottom: SPACING.md,
+    paddingHorizontal: SPACING.containerPadding,
+    height: SPACING.inputHeight,
+    borderWidth: hasError ? 1 : 0,
+    borderColor: hasError ? COLORS.error : 'transparent',
+  }),
+
+  // Mixin pour cards avec options
+  card: (elevated = true, padding = 'default') => {
+    const paddingOptions = {
+      small: SPACING.sm,
+      default: SPACING.cardPadding,
+      large: SPACING.lg,
+    };
+
+    return {
+      backgroundColor: COLORS.surface,
+      borderRadius: SPACING.cardRadius,
+      padding: paddingOptions[padding],
+      marginVertical: SPACING.sm,
+      ...(elevated && {
+        shadowColor: COLORS.shadow,
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+        elevation: 3,
+      })
+    };
+  },
+
+  // Helpers flex
+  flex: {
+    center: {
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    row: {
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    rowCenter: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    spaceBetween: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+    },
+    column: {
+      flexDirection: 'column',
+    },
+  }
+};
+
+// ✅ ENFIN : Styles supplémentaires utilisant les mixins
+export const extendedStyles = StyleSheet.create({
+  // Boutons supplémentaires
+  smallButton: mixins.button('primary', 'small'),
+  accentButton: mixins.button('accent'),
+  dangerButton: mixins.button('danger'),
+  
+  // Cards variantes
+  cardFlat: mixins.card(false),
+  cardSmall: mixins.card(true, 'small'),
+  cardLarge: mixins.card(true, 'large'),
+  
+  // Input avec erreur
+  inputError: mixins.input(true),
+  
+  // Layouts supplémentaires
+  rowCenter: mixins.flex.rowCenter,
+  column: mixins.flex.column,
+});

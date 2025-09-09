@@ -17,6 +17,8 @@ import { useAuth } from '../context/AuthContext';
 import bookService from '../services/bookService';
 import { COLORS, SPACING, ROUTES } from '../constants';
 import { globalStyles } from '../styles/globalStyles';
+import DevLogout from '../components/DevLogout';
+
 
 const BookListScreen = ({ navigation }) => {
   const { user, isLibrarian } = useAuth();
@@ -470,6 +472,7 @@ const BookListScreen = ({ navigation }) => {
         {renderHeader()}
         {renderContent()}
       </ScrollView>
+      <DevLogout />
     </View>
   );
 };

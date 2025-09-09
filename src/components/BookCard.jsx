@@ -1,54 +1,66 @@
 import React from 'react';
 import { View, StyleSheet, Text, TouchableOpacity, Image } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { globalStyles, mixins } from '../../styles/globalStyles';
+import { COLORS, SPACING } from '../../constants';
 
 const BookCard = ({ book, onPress }) => {
   return (
     <TouchableOpacity onPress={onPress} style={styles.card}>
-      <Image source={{ uri: book.cover }} style={styles.cover} />
-      <View style={styles.textContainer}>
-        <Text style={styles.title}>{book.title}</Text>
-        <Text style={styles.author}>{book.author}</Text>
-        <Text style={styles.genre}>{book.genre}</Text>
+      <View style={globalStyles.row}>
+        {/* Cover */}
+        <Image source={{ uri: book.cover }} style={styles.cover} />
+        
+        {/* Content */}
+        <View style={styles.textContainer}>
+          <Text style={globalStyles.title}>{book.title}</Text>
+          <Text style={globalStyles.subtitle}>{book.author}</Text>
+          <Text style={globalStyles.caption}>{book.genre}</Text>
+          
+          {/* Status Badge */}
+          <View style={[styles.statusBadge, globalStyles.rowCenter]}>
+            <Ionicons name="checkmark-circle" size={12} color={COLORS.success} />
+            <Text style={styles.statusText}>Disponible</Text>
+          </View>
+        </View>
       </View>
     </TouchableOpacity>
   );
 };
 
 const styles = StyleSheet.create({
+  // Utilise votre mixin card
   card: {
-    flexDirection: 'row',
-    padding: 10,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 10,
-    margin: 10,
-    shadowColor: '#000',
-    shadowOpacity: 0.1,
-    shadowOffset: { width: 0, height: 5 },
-    shadowRadius: 10,
+    ...mixins.card(true), // true = elevated
+    marginHorizontal: SPACING.containerPadding,
   },
+  
   cover: {
     width: 80,
     height: 100,
     borderRadius: 5,
+    marginRight: SPACING.md,
   },
+  
   textContainer: {
-    marginLeft: 10,
-    flexShrink: 1,
+    flex: 1,
   },
-  title: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#333',
+  
+  statusBadge: {
+    backgroundColor: COLORS.success + '20',
+    paddingHorizontal: SPACING.sm,
+    paddingVertical: 4,
+    borderRadius: 12,
+    alignSelf: 'flex-start',
+    marginTop: SPACING.xs,
   },
-  author: {
-    fontSize: 14,
-    color: '#555',
-  },
-  genre: {
-    fontSize: 12,
-    color: '#888',
-    marginTop: 5,
-  },
+  
+  statusText: {
+    fontSize: 10,
+    fontWeight: '600',
+    color: COLORS.success,
+    marginLeft: 4,
+  }
 });
 
 export default BookCard;

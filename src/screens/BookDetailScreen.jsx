@@ -26,6 +26,32 @@ const BookDetailScreen = ({ route, navigation }) => {
   const [isBorrowing, setIsBorrowing] = useState(false);
   const [isReturning, setIsReturning] = useState(false);
 
+  // ✅ Helper pour récupérer les bonnes données du livre
+  const getBookData = (book) => {
+    if (!book) return {};
+    
+    return {
+      title: book.title || 'Titre non disponible',
+      author: book.authors?.[0] || book.author || 'Auteur inconnu',
+      authors: book.authors || [book.author] || ['Auteur inconnu'],
+      cover: book.cover || book.googleBooks?.imageLinks?.thumbnail || null,
+      description: book.description || 'Aucune description disponible.',
+      genre: book.genre || book.categories?.[0] || 'Non classé',
+      publisher: book.publisher || 'Éditeur inconnu',
+      publishedDate: book.publishedDate || null,
+      pageCount: book.pageCount || null,
+      location: book.library?.location || book.location || 'Localisation non définie',
+      status: book.status || 'available',
+      // Données pour l'emprunt
+      borrowedBy: book.borrowedBy,
+      borrowDate: book.borrowDate,
+      returnDate: book.returnDate,
+      // IDs
+      id: book._id || book.id,
+      googleBooksId: book.googleBooks?.googleBooksId || book.googleBooksId,
+    };
+  };
+
   useEffect(() => {
     navigation.setOptions({
       headerShown: true,
@@ -47,9 +73,8 @@ const BookDetailScreen = ({ route, navigation }) => {
   const loadBookDetails = async () => {
     try {
       setLoading(true);
-      // Pour le moment, on n'a pas cette fonction, on utilise getAllBooks et on filtre
       const allBooks = await bookService.getLibraryBooks();
-      const foundBook = allBooks.find(b => b.id === bookId);
+      const foundBook = allBooks.find(b => (b._id || b.id) === bookId);
       
       if (foundBook) {
         setBook(foundBook);
@@ -70,12 +95,13 @@ const BookDetailScreen = ({ route, navigation }) => {
     if (!currentBook) return;
 
     try {
-      // Recherche de livres similaires basée sur les catégories ou l'auteur
-      const searchQuery = currentBook.categories?.[0] || currentBook.author || 'fiction';
+      const bookData = getBookData(currentBook);
+      const searchQuery = bookData.genre || bookData.authors[0] || 'fiction';
       const recommendations = await googleBooksService.searchBooks(searchQuery, 6);
       
-      // Filtrer le livre actuel des recommandations
-      const filtered = recommendations.filter(rec => rec.googleBooksId !== currentBook.googleBooksId);
+      const filtered = recommendations.filter(rec => 
+        rec.googleBooksId !== bookData.googleBooksId
+      );
       setRecommendedBooks(filtered.slice(0, 3));
     } catch (error) {
       console.error('Error loading recommendations:', error);
@@ -84,15 +110,16 @@ const BookDetailScreen = ({ route, navigation }) => {
 
   const handleBorrow = async () => {
     if (!book || !user) return;
+    const bookData = getBookData(book);
 
-    if (book.status !== 'available') {
+    if (bookData.status !== 'available') {
       Alert.alert('Indisponible', 'Ce livre n\'est pas disponible à l\'emprunt');
       return;
     }
 
     Alert.alert(
       'Emprunter ce livre',
-      `Voulez-vous emprunter "${book.title}" ?\n\n⚠️ Fonction de test - en réalité l'emprunt se fait physiquement à la bibliothèque.`,
+      `Voulez-vous emprunter "${bookData.title}" ?\n\n⚠️ Fonction de test - en réalité l'emprunt se fait physiquement à la bibliothèque.`,
       [
         { text: 'Annuler', style: 'cancel' },
         { 
@@ -100,9 +127,8 @@ const BookDetailScreen = ({ route, navigation }) => {
           onPress: async () => {
             setIsBorrowing(true);
             try {
-              await bookService.borrowBook(book.id, user.id);
+              await bookService.borrowBook(bookData.id, user.id);
               
-              // Mettre à jour le livre local
               setBook(prev => ({
                 ...prev,
                 status: 'borrowed',
@@ -113,7 +139,7 @@ const BookDetailScreen = ({ route, navigation }) => {
               
               Alert.alert(
                 'Emprunt confirmé ! 📚',
-                `"${book.title}" a été ajouté à vos livres empruntés.\n\nÀ rendre dans 14 jours.`,
+                `"${bookData.title}" a été ajouté à vos livres empruntés.\n\nÀ rendre dans 14 jours.`,
                 [{ text: 'OK' }]
               );
             } catch (error) {
@@ -129,10 +155,11 @@ const BookDetailScreen = ({ route, navigation }) => {
 
   const handleReturn = async () => {
     if (!book || !user) return;
+    const bookData = getBookData(book);
 
     Alert.alert(
       'Retourner ce livre',
-      `Voulez-vous retourner "${book.title}" ?`,
+      `Voulez-vous retourner "${bookData.title}" ?`,
       [
         { text: 'Annuler', style: 'cancel' },
         { 
@@ -140,9 +167,8 @@ const BookDetailScreen = ({ route, navigation }) => {
           onPress: async () => {
             setIsReturning(true);
             try {
-              await bookService.returnBook(book.id, user.id);
+              await bookService.returnBook(bookData.id, user.id);
               
-              // Mettre à jour le livre local
               setBook(prev => ({
                 ...prev,
                 status: 'available',
@@ -151,7 +177,7 @@ const BookDetailScreen = ({ route, navigation }) => {
                 returnDate: null
               }));
               
-              Alert.alert('Livre retourné ! ✅', `"${book.title}" a été retourné avec succès.`);
+              Alert.alert('Livre retourné ! ✅', `"${bookData.title}" a été retourné avec succès.`);
             } catch (error) {
               Alert.alert('Erreur', error.message || 'Impossible de retourner ce livre');
             } finally {
@@ -163,18 +189,16 @@ const BookDetailScreen = ({ route, navigation }) => {
     );
   };
 
-  const getStatusInfo = () => {
-    if (!book) return null;
-
-    switch (book.status) {
+  const getStatusInfo = (status, borrowedBy) => {
+    switch (status) {
       case 'available':
         return {
           color: COLORS.success,
-          text: 'Available',
+          text: 'Disponible',
           icon: 'checkmark-circle'
         };
       case 'borrowed':
-        if (book.borrowedBy === user?.id) {
+        if (borrowedBy === user?.id) {
           return {
             color: COLORS.info,
             text: 'Emprunté par vous',
@@ -183,20 +207,20 @@ const BookDetailScreen = ({ route, navigation }) => {
         }
         return {
           color: COLORS.warning,
-          text: 'Borrowed',
+          text: 'Emprunté',
           icon: 'time'
         };
       case 'reserved':
         return {
           color: COLORS.info,
-          text: 'Reserved',
+          text: 'Réservé',
           icon: 'bookmark'
         };
       default:
         return {
-          color: COLORS.textMuted,
-          text: 'Unknown',
-          icon: 'help-circle'
+          color: COLORS.success,
+          text: 'Disponible',
+          icon: 'checkmark-circle'
         };
     }
   };
@@ -214,7 +238,6 @@ const BookDetailScreen = ({ route, navigation }) => {
     <TouchableOpacity 
       style={styles.recommendedBookCard}
       onPress={() => {
-        // Navigation vers un livre Google Books (pas dans notre DB)
         Alert.alert(
           'Livre externe',
           `"${item.title}" n'est pas dans notre bibliothèque.\n\nVoulez-vous voir plus d'infos sur Google Books ?`,
@@ -223,7 +246,6 @@ const BookDetailScreen = ({ route, navigation }) => {
             { 
               text: 'Oui', 
               onPress: () => {
-                // TODO: Ouvrir le lien Google Books ou ajouter à la wishlist
                 console.log('Ouvrir:', item.previewLink);
               }
             }
@@ -267,16 +289,18 @@ const BookDetailScreen = ({ route, navigation }) => {
     );
   }
 
-  const statusInfo = getStatusInfo();
+  // ✅ Utiliser les données formatées
+  const bookData = getBookData(book);
+  const statusInfo = getStatusInfo(bookData.status, bookData.borrowedBy);
 
   return (
     <View style={styles.container}>
       <ScrollView style={styles.scrollContainer} showsVerticalScrollIndicator={false}>
         {/* Cover Image */}
         <View style={styles.coverContainer}>
-          {book.cover ? (
+          {bookData.cover ? (
             <Image 
-              source={{ uri: book.cover }} 
+              source={{ uri: bookData.cover }} 
               style={styles.cover}
               resizeMode="cover"
             />
@@ -288,50 +312,51 @@ const BookDetailScreen = ({ route, navigation }) => {
         </View>
 
         {/* Status Badge */}
-        {statusInfo && (
-          <View style={styles.statusContainer}>
-            <View style={[styles.statusBadge, { backgroundColor: statusInfo.color + '20' }]}>
-              <Ionicons name={statusInfo.icon} size={20} color={statusInfo.color} />
-              <Text style={[styles.statusText, { color: statusInfo.color }]}>
-                {statusInfo.text}
-              </Text>
-            </View>
+        <View style={styles.statusContainer}>
+          <View style={[styles.statusBadge, { backgroundColor: statusInfo.color + '20' }]}>
+            <Ionicons name={statusInfo.icon} size={20} color={statusInfo.color} />
+            <Text style={[styles.statusText, { color: statusInfo.color }]}>
+              {statusInfo.text}
+            </Text>
           </View>
-        )}
+        </View>
 
         {/* Title and Author */}
-        <Text style={styles.title}>{book.title}</Text>
-        <Text style={styles.author}>{book.author}</Text>
+        <Text style={styles.title}>{bookData.title}</Text>
+        <Text style={styles.author}>{bookData.author}</Text>
 
         {/* Meta Information */}
         <View style={styles.metaContainer}>
           <View style={styles.metaRow}>
             <Ionicons name="library" size={16} color={COLORS.textMuted} />
-            <Text style={styles.metaText}>
-              {book.genre || book.categories?.[0] || 'Non classé'}
-            </Text>
+            <Text style={styles.metaText}>{bookData.genre}</Text>
           </View>
           
-          {book.publishedDate && (
+          {bookData.publishedDate && (
             <View style={styles.metaRow}>
               <Ionicons name="calendar" size={16} color={COLORS.textMuted} />
               <Text style={styles.metaText}>
-                Publié en {new Date(book.publishedDate).getFullYear()}
+                Publié en {new Date(bookData.publishedDate).getFullYear()}
               </Text>
             </View>
           )}
           
-          {book.pageCount && (
+          {bookData.pageCount && (
             <View style={styles.metaRow}>
               <Ionicons name="document-text" size={16} color={COLORS.textMuted} />
-              <Text style={styles.metaText}>{book.pageCount} pages</Text>
+              <Text style={styles.metaText}>{bookData.pageCount} pages</Text>
             </View>
           )}
           
-          {book.location && (
+          <View style={styles.metaRow}>
+            <Ionicons name="location" size={16} color={COLORS.textMuted} />
+            <Text style={styles.metaText}>📍 {bookData.location}</Text>
+          </View>
+
+          {bookData.publisher && (
             <View style={styles.metaRow}>
-              <Ionicons name="location" size={16} color={COLORS.textMuted} />
-              <Text style={styles.metaText}>Localisation: {book.location}</Text>
+              <Ionicons name="business" size={16} color={COLORS.textMuted} />
+              <Text style={styles.metaText}>{bookData.publisher}</Text>
             </View>
           )}
         </View>
@@ -339,29 +364,19 @@ const BookDetailScreen = ({ route, navigation }) => {
         {/* Description */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Description</Text>
-          <Text style={styles.description}>
-            {book.description || 'Aucune description disponible.'}
-          </Text>
+          <Text style={styles.description}>{bookData.description}</Text>
         </View>
 
-        {/* Publisher Info */}
-        {book.publisher && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Éditeur</Text>
-            <Text style={styles.description}>{book.publisher}</Text>
-          </View>
-        )}
-
         {/* Borrow/Return Info */}
-        {book.status === 'borrowed' && book.borrowedBy === user?.id && (
+        {bookData.status === 'borrowed' && bookData.borrowedBy === user?.id && (
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Informations d'emprunt</Text>
             <View style={styles.borrowInfo}>
               <Text style={styles.borrowInfoText}>
-                📅 Emprunté le: {formatDate(book.borrowDate)}
+                📅 Emprunté le: {formatDate(bookData.borrowDate)}
               </Text>
               <Text style={styles.borrowInfoText}>
-                📅 À rendre le: {formatDate(book.returnDate)}
+                📅 À rendre le: {formatDate(bookData.returnDate)}
               </Text>
             </View>
           </View>
@@ -374,7 +389,7 @@ const BookDetailScreen = ({ route, navigation }) => {
             <FlatList
               data={recommendedBooks}
               renderItem={renderRecommendedBook}
-              keyExtractor={(item) => item.id.toString()}
+              keyExtractor={(item) => item.id?.toString() || Math.random().toString()}
               horizontal
               showsHorizontalScrollIndicator={false}
               contentContainerStyle={styles.recommendedList}
@@ -385,7 +400,7 @@ const BookDetailScreen = ({ route, navigation }) => {
 
       {/* Action Button */}
       <View style={styles.actionContainer}>
-        {book.status === 'available' && (
+        {bookData.status === 'available' && (
           <TouchableOpacity 
             style={[globalStyles.primaryButton, isBorrowing && styles.buttonDisabled]}
             onPress={handleBorrow}
@@ -397,14 +412,14 @@ const BookDetailScreen = ({ route, navigation }) => {
               <>
                 <Ionicons name="add-circle" size={20} color={COLORS.textPrimary} />
                 <Text style={[globalStyles.primaryButtonText, { marginLeft: SPACING.sm }]}>
-                  Emprunter (Test)
+                  Emprunter
                 </Text>
               </>
             )}
           </TouchableOpacity>
         )}
 
-        {book.status === 'borrowed' && book.borrowedBy === user?.id && (
+        {bookData.status === 'borrowed' && bookData.borrowedBy === user?.id && (
           <TouchableOpacity 
             style={[styles.returnButton, isReturning && styles.buttonDisabled]}
             onPress={handleReturn}
@@ -423,7 +438,7 @@ const BookDetailScreen = ({ route, navigation }) => {
           </TouchableOpacity>
         )}
 
-        {book.status === 'borrowed' && book.borrowedBy !== user?.id && (
+        {bookData.status === 'borrowed' && bookData.borrowedBy !== user?.id && (
           <View style={styles.unavailableButton}>
             <Ionicons name="time" size={20} color={COLORS.warning} />
             <Text style={[styles.unavailableButtonText, { marginLeft: SPACING.sm }]}>
@@ -436,6 +451,7 @@ const BookDetailScreen = ({ route, navigation }) => {
   );
 };
 
+// Styles inchangés
 const styles = StyleSheet.create({
   container: {
     flex: 1,
