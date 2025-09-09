@@ -26,7 +26,6 @@ const BookDetailScreen = ({ route, navigation }) => {
   const [isBorrowing, setIsBorrowing] = useState(false);
   const [isReturning, setIsReturning] = useState(false);
 
-  // ✅ Helper pour récupérer les bonnes données du livre
   const getBookData = (book) => {
     if (!book) return {};
     
@@ -42,11 +41,9 @@ const BookDetailScreen = ({ route, navigation }) => {
       pageCount: book.pageCount || null,
       location: book.library?.location || book.location || 'Localisation non définie',
       status: book.status || 'available',
-      // Données pour l'emprunt
       borrowedBy: book.borrowedBy,
       borrowDate: book.borrowDate,
       returnDate: book.returnDate,
-      // IDs
       id: book._id || book.id,
       googleBooksId: book.googleBooks?.googleBooksId || book.googleBooksId,
     };
