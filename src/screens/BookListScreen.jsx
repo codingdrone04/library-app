@@ -14,7 +14,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../context/AuthContext';
-import bookService from '../services/bookService';
+import api from '../services/api';
 import { COLORS, SPACING, ROUTES } from '../constants';
 import { globalStyles } from '../styles/globalStyles';
 import DevLogout from '../components/DevLogout';
@@ -44,7 +44,7 @@ const BookListScreen = ({ navigation }) => {
       console.log('📚 Chargement des livres depuis la DB...');
       
       // Charger tous les livres depuis l'API (qui vient de votre DB)
-      const allBooks = await bookService.getLibraryBooks();
+      const allBooks = await api.getLibraryBooks();
       console.log('✅ Livres chargés depuis DB:', allBooks.length);
       
       if (allBooks.length === 0) {
@@ -99,7 +99,7 @@ const BookListScreen = ({ navigation }) => {
         console.log('📤 Envoi de la recherche...');
         
         // Recherche dans la DB via l'API
-        const results = await bookService.searchLibraryBooks(term);
+        const results = await api.searchLibraryBooks(term);
         
         console.log('📥 Résultats reçus:', {
           count: results?.length || 0,
@@ -115,7 +115,7 @@ const BookListScreen = ({ navigation }) => {
           console.log('⚠️ Aucun résultat trouvé');
           
           // Test: récupérer tous les livres pour voir s'il y en a
-          const allBooks = await bookService.getLibraryBooks();
+          const allBooks = await api.getLibraryBooks();
           console.log('📚 Total livres en base:', allBooks.length);
           
           if (allBooks.length > 0) {
@@ -132,7 +132,7 @@ const BookListScreen = ({ navigation }) => {
         // Afficher une alerte avec plus d'infos
         Alert.alert(
           'Erreur de recherche', 
-          `Impossible de rechercher: ${error.message}\n\nURL: ${bookService.getAPIUrl()}`,
+          `Impossible de rechercher: ${error.message}\n\nURL: ${api.getAPIUrl()}`,
           [
             { text: 'OK' },
             { text: 'Tester API', onPress: () => testAPIConnection() }
@@ -153,7 +153,7 @@ const BookListScreen = ({ navigation }) => {
       console.log('🧪 === TEST DE RECHERCHE ===');
       
       // Test avec le service
-      const testResults = await bookService.testSearch('harry');
+      const testResults = await api.testSearch('harry');
       console.log('📊 Résultats test:', testResults);
       
       Alert.alert(
@@ -172,12 +172,12 @@ const BookListScreen = ({ navigation }) => {
   const testAPIConnection = async () => {
     try {
       console.log('🔍 Test connexion API...');
-      const result = await bookService.testConnection();
+      const result = await api.testConnection();
       console.log('📊 Résultat test:', result);
       
       Alert.alert(
         result.success ? '✅ Connexion réussie' : '❌ Connexion échouée',
-        `URL: ${bookService.getAPIUrl()}\n\n${result.message}`,
+        `URL: ${api.getAPIUrl()}\n\n${result.message}`,
         [
           { text: 'OK' },
           result.success && { 

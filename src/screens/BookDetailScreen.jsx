@@ -12,7 +12,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../context/AuthContext';
-import bookService from '../services/bookService';
+import api from '../services/api';
 import googleBooksService from '../services/googleBooksService';
 import { COLORS, SPACING, ROUTES } from '../constants';
 import { globalStyles } from '../styles/globalStyles';
@@ -70,7 +70,7 @@ const BookDetailScreen = ({ route, navigation }) => {
   const loadBookDetails = async () => {
     try {
       setLoading(true);
-      const allBooks = await bookService.getLibraryBooks();
+      const allBooks = await api.getLibraryBooks();
       const foundBook = allBooks.find(b => (b._id || b.id) === bookId);
       
       if (foundBook) {
@@ -124,7 +124,7 @@ const BookDetailScreen = ({ route, navigation }) => {
           onPress: async () => {
             setIsBorrowing(true);
             try {
-              await bookService.borrowBook(bookData.id, user.id);
+              await api.borrowBook(bookData.id, user.id);
               
               setBook(prev => ({
                 ...prev,
@@ -164,7 +164,7 @@ const BookDetailScreen = ({ route, navigation }) => {
           onPress: async () => {
             setIsReturning(true);
             try {
-              await bookService.returnBook(bookData.id, user.id);
+              await api.returnBook(bookData.id, user.id);
               
               setBook(prev => ({
                 ...prev,

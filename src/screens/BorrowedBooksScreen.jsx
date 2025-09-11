@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../context/AuthContext';
-import bookService from '../services/bookService';
+import api from '../services/api';
 import { COLORS, SPACING, ROUTES } from '../constants';
 import { globalStyles } from '../styles/globalStyles';
 
@@ -35,7 +35,7 @@ const BorrowedBooksScreen = ({ navigation }) => {
         return;
       }
 
-      const userBorrowedBooks = await bookService.getUserBorrowedBooks(user.id);
+      const userBorrowedBooks = await api.getUserBorrowedBooks(user.id);
       console.log('✅ Livres empruntés trouvés:', userBorrowedBooks.length);
       
       // Ajouter les infos d'emprunt calculées
@@ -129,7 +129,7 @@ const BorrowedBooksScreen = ({ navigation }) => {
           text: 'Retourner', 
           onPress: async () => {
             try {
-              await bookService.returnBook(bookId, user.id);
+              await api.returnBook(bookId, user.id);
               
               // Retirer le livre de la liste locale
               setBorrowedBooks(prev => prev.filter(b => b.id !== bookId));
