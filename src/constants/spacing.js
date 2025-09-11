@@ -7,7 +7,6 @@ export const SPACING = {
     xxl: 40,
     xxxl: 48,
     
-    // Specific use cases
     containerPadding: 20,
     sectionMargin: 30,
     cardPadding: 15,
@@ -28,7 +27,6 @@ export const SPACING = {
     xxxl: 24,
     title: 28,
     
-    // Specific use cases
     caption: 12,
     body: 14,
     subtitle: 16,
