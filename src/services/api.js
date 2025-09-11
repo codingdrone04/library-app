@@ -22,7 +22,6 @@ class ApiService {
       }
     });
 
-    console.log('🌐 API Base URL:', this.baseURL);
     this.setupInterceptors();
   }
 
@@ -51,7 +50,6 @@ class ApiService {
   setupInterceptors() {
     this.api.interceptors.request.use(
       (config) => {
-        console.log(`🌐 API Request: ${config.method?.toUpperCase()} ${config.url}`);
         return config;
       },
       (error) => {
@@ -62,7 +60,6 @@ class ApiService {
 
     this.api.interceptors.response.use(
       (response) => {
-        console.log(`✅ API Response: ${response.status} ${response.config.url}`);
         return response;
       },
       (error) => {

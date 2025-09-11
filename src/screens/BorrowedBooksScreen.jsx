@@ -27,7 +27,6 @@ const BorrowedBooksScreen = ({ navigation }) => {
 
   const loadBorrowedBooks = async () => {
     try {
-      console.log('📚 Chargement des livres empruntés pour l\'utilisateur:', user?.id);
       
       if (!user?.id) {
         console.warn('⚠️ Pas d\'ID utilisateur');
@@ -36,7 +35,6 @@ const BorrowedBooksScreen = ({ navigation }) => {
       }
 
       const userBorrowedBooks = await api.getUserBorrowedBooks(user.id);
-      console.log('✅ Livres empruntés trouvés:', userBorrowedBooks.length);
       
       const booksWithBorrowInfo = userBorrowedBooks.map(book => ({
         ...book,

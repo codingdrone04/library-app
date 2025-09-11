@@ -13,7 +13,6 @@ const DevLogout = () => {
   const handleLogout = async () => {
     try {
       await logout();
-      console.log('🔓 Déconnexion forcée (mode dev)');
     } catch (error) {
       console.error('Erreur déconnexion:', error);
     }

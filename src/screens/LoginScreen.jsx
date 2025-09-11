@@ -34,14 +34,11 @@ const LoginScreen = ({ navigation }) => {
   // Rediriger si déjà connecté
   useEffect(() => {
     if (isAuthenticated) {
-      console.log('✅ Utilisateur déjà connecté, redirection...');
       navigation.replace('MainTabs');
     }
   }, [isAuthenticated, navigation]);
 
-  const handleLogin = async () => {
-    console.log('🔐 Tentative de connexion...', { username, password: '***' });
-    
+  const handleLogin = async () => {    
     // Basic validation
     if (!username.trim()) {
       Alert.alert('Erreur', 'Veuillez saisir votre nom d\'utilisateur');
@@ -56,11 +53,8 @@ const LoginScreen = ({ navigation }) => {
     setIsSubmitting(true);
 
     try {
-      console.log('📤 Envoi des données de connexion...');
       const result = await login(username.trim(), password);
-      
-      console.log('✅ Connexion réussie:', result);
-      
+            
       Alert.alert(
         'Connexion réussie !', 
         `Bienvenue ${result.user.firstname} !`,
@@ -68,7 +62,6 @@ const LoginScreen = ({ navigation }) => {
           { 
             text: 'OK', 
             onPress: () => {
-              console.log('🏠 Navigation vers MainTabs...');
               navigation.replace('MainTabs');
             }
           }

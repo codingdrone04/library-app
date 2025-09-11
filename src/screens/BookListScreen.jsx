@@ -40,11 +40,8 @@ const BookListScreen = ({ navigation }) => {
     try {
       setIsLoading(true);
       setError(null);
-      
-      console.log('📚 Chargement des livres depuis la DB...');
-      
+            
       const allBooks = await api.getLibraryBooks();
-      console.log('✅ Livres chargés depuis DB:', allBooks.length);
       
       if (allBooks.length === 0) {
         setError('Aucun livre trouvé dans la base de données');
@@ -67,9 +64,6 @@ const BookListScreen = ({ navigation }) => {
       setPopularBooks(availableBooks.slice(0, 6));
       setNewBooks(recentBooks.slice(0, 5));
       
-      console.log('📊 Livres populaires:', availableBooks.length);
-      console.log('🆕 Nouveautés:', recentBooks.length);
-      
     } catch (error) {
       console.error('❌ Erreur loading initial data:', error);
       setError(`Erreur de connexion: ${error.message}`);
@@ -85,38 +79,18 @@ const BookListScreen = ({ navigation }) => {
   };
 
   const handleSearch = async (term) => {
-    console.log('🔍 handleSearch appelée avec:', term);
-    
     setSearchTerm(term);
     setIsSearching(term.length > 0);
-
+  
     if (term.length > 2) {
       setSearchLoading(true);
       try {
-        console.log('📤 Envoi de la recherche...');
-        
         const results = await api.searchBooks(term);
-        
-        console.log('📥 Résultats reçus:', {
-          count: results?.length || 0,
-          results: results
-        });
-        
         setSearchResults(results || []);
         
-        if (results && results.length > 0) {
-          console.log('✅ Premier résultat:', results[0]);
-        } else {
-          console.log('⚠️ Aucun résultat trouvé');
-          
+        if (__DEV__ && (!results || results.length === 0)) {
           const allBooks = await api.getLibraryBooks();
-          console.log('📚 Total livres en base:', allBooks.length);
-          
-          if (allBooks.length > 0) {
-            console.log('📝 Premier livre en base:', allBooks[0]);
-            console.log('🔍 Recherche "' + term + '" dans titre "' + allBooks[0].title + '":', 
-                       allBooks[0].title.toLowerCase().includes(term.toLowerCase()));
-          }
+          console.log(`🔍 Debug recherche: "${term}" - 0 résultats sur ${allBooks.length} livres`);
         }
         
       } catch (error) {
@@ -135,7 +109,6 @@ const BookListScreen = ({ navigation }) => {
         setSearchLoading(false);
       }
     } else {
-      console.log('🔍 Terme trop court, reset des résultats');
       setSearchResults([]);
       setSearchLoading(false);
     }
@@ -143,9 +116,7 @@ const BookListScreen = ({ navigation }) => {
 
   const testAPIConnection = async () => {
     try {
-      console.log('🔍 Test connexion API...');
       const result = await api.testConnection();
-      console.log('📊 Résultat test:', result);
       
       Alert.alert(
         result.success ? '✅ Connexion réussie' : '❌ Connexion échouée',

@@ -6,14 +6,11 @@ class AuthService {
   // Login avec vraie API
   async login(username, password) {
     try {
-      console.log('🔐 Tentative de connexion:', username);
       
       const response = await apiService.api.post('/auth/login', {
         username,
         password
       });
-
-      console.log('✅ Réponse login:', response.data);
 
       if (response.data.success) {
         await this.storeUserData(response.data.data.user, response.data.data.token);
@@ -35,7 +32,6 @@ class AuthService {
   // Register avec vraie API
   async register(userData) {
     try {
-      console.log('📝 Tentative d\'inscription:', userData.username);
       
       const response = await apiService.api.post('/auth/register', {
         firstname: userData.firstname,
@@ -46,8 +42,6 @@ class AuthService {
         role: userData.role || 'user',
         age: userData.age
       });
-
-      console.log('✅ Réponse register:', response.data);
 
       if (response.data.success) {
         await this.storeUserData(response.data.data.user, response.data.data.token);
@@ -95,7 +89,6 @@ class AuthService {
       // Configurer le token pour les futures requêtes API
       apiService.api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
       
-      console.log('💾 Données utilisateur sauvegardées');
     } catch (error) {
       console.error('❌ Erreur stockage:', error);
       throw new Error('Erreur de stockage des données utilisateur');
@@ -161,7 +154,6 @@ class AuthService {
   async logout() {
     try {
       await this.clearStoredData();
-      console.log('👋 Déconnexion réussie');
       return { success: true };
     } catch (error) {
       console.error('❌ Erreur logout:', error);
