@@ -3,39 +3,32 @@ const mongoose = require('mongoose');
 
 let mongod;
 
-// ✅ Utiliser module.exports.mochaHooks ou export direct
 const setupDatabase = async () => {
-  console.log('🚀 [SETUP] Démarrage MongoDB Memory Server...');
-  
   try {
-    // Déconnecter toute connexion existante
-    if (mongoose.connection.readyState !== 0) {
-      await mongoose.disconnect();
-    }
-
-    // Créer MongoDB en mémoire
+    console.log('🚀 [SETUP] Démarrage MongoDB Memory Server...');
+    
+    // Create MongoDB in memory with proper configuration
     mongod = await MongoMemoryServer.create({
       binary: {
-        version: 'latest', // Laisse MongoDB Memory Server choisir
+        version: '6.0.9', // Use a specific stable version instead of 'latest'
         downloadDir: './node_modules/.cache/mongodb-memory-server',
       },
       instance: {
-        dbName: 'test-library',
-        port: 27017, // Port fixe pour éviter les conflits
-      }
+        storageEngine: 'wiredTiger', // Use wiredTiger instead of ephemeralForTest
+        dbName: 'library-test',
+      },
     });
 
-    const uri = mongod.getUri();
-    console.log('📡 [SETUP] URI:', uri);
+    const mongoUri = mongod.getUri();
+    console.log('📊 MongoDB Memory Server URI:', mongoUri);
 
-    // Connexion avec timeout plus généreux
-    await mongoose.connect(uri, {
-      bufferCommands: false,
-      bufferMaxEntries: 0,
+    // Connect mongoose to the in-memory database
+    await mongoose.connect(mongoUri, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
     });
-    
-    console.log('✅ [SETUP] MongoDB connecté! ReadyState:', mongoose.connection.readyState);
-    
+
+    console.log('✅ [SETUP] MongoDB Memory Server démarré');
   } catch (error) {
     console.error('❌ [SETUP] Erreur:', error);
     throw error;
@@ -43,12 +36,11 @@ const setupDatabase = async () => {
 };
 
 const teardownDatabase = async () => {
-  console.log('🧹 [TEARDOWN] Nettoyage...');
-  
   try {
+    console.log('🧹 [TEARDOWN] Nettoyage...');
+    
     if (mongoose.connection.readyState !== 0) {
-      await mongoose.connection.dropDatabase();
-      await mongoose.connection.close();
+      await mongoose.disconnect();
     }
     
     if (mongod) {
@@ -61,12 +53,7 @@ const teardownDatabase = async () => {
   }
 };
 
-// ✅ Setup et teardown global corrects
-beforeAll(setupDatabase, 120000);
-afterAll(teardownDatabase, 30000);
-
-// Export pour utilisation manuelle si besoin
 module.exports = {
   setupDatabase,
-  teardownDatabase
+  teardownDatabase,
 };
