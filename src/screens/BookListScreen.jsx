@@ -6,8 +6,7 @@ import {
   View, 
   Text, 
   FlatList, 
-  TouchableOpacity, 
-  Image,
+  TouchableOpacity,
   RefreshControl,
   ActivityIndicator,
   Alert
@@ -15,10 +14,11 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
+import BookCard from '../components/BookCard';
+import SearchBar from '../components/Searchbar';
 import { COLORS, SPACING, ROUTES } from '../constants';
 import { globalStyles } from '../styles/globalStyles';
 import DevLogout from '../components/DevLogout';
-
 
 const BookListScreen = ({ navigation }) => {
   const { user, isLibrarian } = useAuth();
@@ -43,7 +43,6 @@ const BookListScreen = ({ navigation }) => {
       
       console.log('📚 Chargement des livres depuis la DB...');
       
-      // Charger tous les livres depuis l'API (qui vient de votre DB)
       const allBooks = await api.getLibraryBooks();
       console.log('✅ Livres chargés depuis DB:', allBooks.length);
       
@@ -54,10 +53,8 @@ const BookListScreen = ({ navigation }) => {
         return;
       }
       
-      // Séparer en populaires et nouveaux basés sur les données DB
       const availableBooks = allBooks.filter(book => book.status === 'available');
       
-      // Les plus récents basés sur la date d'acquisition de la DB
       const recentBooks = allBooks
         .filter(book => {
           const acquisitionDate = new Date(book.library?.acquisitionDate || book.createdAt);
@@ -67,8 +64,8 @@ const BookListScreen = ({ navigation }) => {
         })
         .sort((a, b) => new Date(b.library?.acquisitionDate || b.createdAt) - new Date(a.library?.acquisitionDate || a.createdAt));
       
-      setPopularBooks(availableBooks.slice(0, 6)); // Les 6 premiers disponibles
-      setNewBooks(recentBooks.slice(0, 5)); // Les 5 plus récents
+      setPopularBooks(availableBooks.slice(0, 6));
+      setNewBooks(recentBooks.slice(0, 5));
       
       console.log('📊 Livres populaires:', availableBooks.length);
       console.log('🆕 Nouveautés:', recentBooks.length);
@@ -92,14 +89,13 @@ const BookListScreen = ({ navigation }) => {
     
     setSearchTerm(term);
     setIsSearching(term.length > 0);
-  
+
     if (term.length > 2) {
       setSearchLoading(true);
       try {
         console.log('📤 Envoi de la recherche...');
         
-        // Recherche dans la DB via l'API
-        const results = await api.searchLibraryBooks(term);
+        const results = await api.searchBooks(term);
         
         console.log('📥 Résultats reçus:', {
           count: results?.length || 0,
@@ -108,13 +104,11 @@ const BookListScreen = ({ navigation }) => {
         
         setSearchResults(results || []);
         
-        // Log pour debug
         if (results && results.length > 0) {
           console.log('✅ Premier résultat:', results[0]);
         } else {
           console.log('⚠️ Aucun résultat trouvé');
           
-          // Test: récupérer tous les livres pour voir s'il y en a
           const allBooks = await api.getLibraryBooks();
           console.log('📚 Total livres en base:', allBooks.length);
           
@@ -129,10 +123,9 @@ const BookListScreen = ({ navigation }) => {
         console.error('❌ Erreur recherche:', error);
         setSearchResults([]);
         
-        // Afficher une alerte avec plus d'infos
         Alert.alert(
           'Erreur de recherche', 
-          `Impossible de rechercher: ${error.message}\n\nURL: ${api.getAPIUrl()}`,
+          `Impossible de rechercher: ${error.message}\n\nURL: ${api.getBaseURL()}`,
           [
             { text: 'OK' },
             { text: 'Tester API', onPress: () => testAPIConnection() }
@@ -148,27 +141,6 @@ const BookListScreen = ({ navigation }) => {
     }
   };
 
-  const testSearchFunction = async () => {
-    try {
-      console.log('🧪 === TEST DE RECHERCHE ===');
-      
-      // Test avec le service
-      const testResults = await api.testSearch('harry');
-      console.log('📊 Résultats test:', testResults);
-      
-      Alert.alert(
-        'Test de recherche',
-        `Recherche: ${testResults.searchResults?.length || 0} résultats\n` +
-        `Tous les livres: ${testResults.allBooks?.length || 0}\n` +
-        `Erreur: ${testResults.error || 'Aucune'}`,
-        [{ text: 'OK' }]
-      );
-    } catch (error) {
-      Alert.alert('Erreur test', error.message);
-    }
-  };
-
-  // Test de connexion API
   const testAPIConnection = async () => {
     try {
       console.log('🔍 Test connexion API...');
@@ -177,7 +149,7 @@ const BookListScreen = ({ navigation }) => {
       
       Alert.alert(
         result.success ? '✅ Connexion réussie' : '❌ Connexion échouée',
-        `URL: ${api.getAPIUrl()}\n\n${result.message}`,
+        `URL: ${api.getBaseURL()}\n\n${result.message}`,
         [
           { text: 'OK' },
           result.success && { 
@@ -189,35 +161,6 @@ const BookListScreen = ({ navigation }) => {
     } catch (error) {
       console.error('❌ Erreur test:', error);
       Alert.alert('❌ Erreur', error.message);
-    }
-  };
-
-  const getStatusBadge = (status) => {
-    switch (status) {
-      case 'available':
-        return {
-          color: COLORS.success,
-          text: 'Disponible',
-          icon: 'checkmark-circle'
-        };
-      case 'borrowed':
-        return {
-          color: COLORS.warning,
-          text: 'Emprunté',
-          icon: 'time'
-        };
-      case 'reserved':
-        return {
-          color: COLORS.info,
-          text: 'Réservé',
-          icon: 'bookmark'
-        };
-      default:
-        return {
-          color: COLORS.success,
-          text: 'Disponible',
-          icon: 'checkmark-circle'
-        };
     }
   };
 
@@ -235,33 +178,16 @@ const BookListScreen = ({ navigation }) => {
           </View>
         )}
       </View>
-
-      {/* Search Bar */}
-      <View style={styles.searchContainer}>
-        <View style={styles.searchInputContainer}>
-          <Ionicons name="search" size={20} color={COLORS.textMuted} style={styles.searchIcon} />
-          <TextInput
-            style={styles.searchInput}
-            placeholder="Rechercher un livre..."
-            onChangeText={handleSearch}
-            value={searchTerm}
-            placeholderTextColor={COLORS.textPlaceholder}
-          />
-          {searchLoading && (
-            <ActivityIndicator size="small" color={COLORS.primary} style={{ marginRight: 10 }} />
-          )}
-          {searchTerm.length > 0 && !searchLoading && (
-            <TouchableOpacity 
-              onPress={() => handleSearch('')}
-              style={styles.clearButton}
-            >
-              <Ionicons name="close-circle" size={20} color={COLORS.textMuted} />
-            </TouchableOpacity>
-          )}
-        </View>
-      </View>
-
-      {/* Bouton de test API (temporaire) */}
+  
+      {/* Search Bar - SIMPLIFIÉ */}
+      <SearchBar
+        value={searchTerm}
+        onChangeText={handleSearch}
+        placeholder="Rechercher un livre..."
+        loading={searchLoading}
+      />
+  
+      {/* Bouton de test API */}
       <TouchableOpacity 
         style={styles.testButton}
         onPress={testAPIConnection}
@@ -272,141 +198,29 @@ const BookListScreen = ({ navigation }) => {
     </View>
   );
 
-  const renderPopularBook = ({ item }) => {
-    const statusBadge = getStatusBadge(item.status);
-    
-    return (
-      <TouchableOpacity 
-        style={styles.popularBookCard}
-        onPress={() => navigation.navigate(ROUTES.BOOK_DETAIL, { book: item })}
-      >
-        {item.cover || item.googleBooks?.imageLinks?.thumbnail ? (
-          <Image 
-            source={{ uri: item.cover || item.googleBooks?.imageLinks?.thumbnail }} 
-            style={styles.popularBookImage}
-            resizeMode="cover"
-          />
-        ) : (
-          <View style={[styles.popularBookImage, styles.placeholderImage]}>
-            <Ionicons name="book" size={40} color={COLORS.textPrimary} />
-          </View>
-        )}
-        <View style={styles.popularBookInfo}>
-          <Text style={styles.popularBookTitle} numberOfLines={2}>{item.title}</Text>
-          <Text style={styles.popularBookAuthor} numberOfLines={1}>
-            {item.authors?.[0] || item.author || 'Auteur inconnu'}
-          </Text>
-          
-          {/* Status Badge */}
-          <View style={[styles.statusBadge, { backgroundColor: statusBadge.color + '20' }]}>
-            <Ionicons 
-              name={statusBadge.icon} 
-              size={12} 
-              color={statusBadge.color} 
-            />
-            <Text style={[styles.statusText, { color: statusBadge.color }]}>
-              {statusBadge.text}
-            </Text>
-          </View>
+  // ✅ RENDER FUNCTIONS ULTRA-SIMPLIFIÉES
+  const renderPopularBook = ({ item }) => (
+    <BookCard 
+      book={item}
+      variant="compact"
+      onPress={() => navigation.navigate(ROUTES.BOOK_DETAIL, { book: item })}
+    />
+  );
 
-          {/* Localisation */}
-          {item.library?.location && (
-            <Text style={styles.locationText}>📍 {item.library.location}</Text>
-          )}
-        </View>
-      </TouchableOpacity>
-    );
-  };
-
-  const renderNewBook = ({ item }) => {
-    const statusBadge = getStatusBadge(item.status);
-    
-    return (
-      <TouchableOpacity 
-        style={styles.newBookCard}
-        onPress={() => navigation.navigate(ROUTES.BOOK_DETAIL, { book: item })}
-      >
-        <View style={styles.newBookImageContainer}>
-          {item.cover || item.googleBooks?.imageLinks?.thumbnail ? (
-            <Image 
-              source={{ uri: item.cover || item.googleBooks?.imageLinks?.thumbnail }} 
-              style={styles.newBookImage} 
-            />
-          ) : (
-            <View style={styles.placeholderImage}>
-              <Ionicons name="book" size={30} color={COLORS.textPrimary} />
-            </View>
-          )}
-        </View>
-        
-        <View style={styles.newBookInfo}>
-          <View style={styles.newBookHeader}>
-            <Text style={styles.newBookTitle} numberOfLines={2}>{item.title}</Text>
-            <View style={[styles.statusBadge, { backgroundColor: statusBadge.color + '20' }]}>
-              <Ionicons 
-                name={statusBadge.icon} 
-                size={12} 
-                color={statusBadge.color} 
-              />
-              <Text style={[styles.statusText, { color: statusBadge.color }]}>
-                {statusBadge.text}
-              </Text>
-            </View>
-          </View>
-          
-          <Text style={styles.newBookAuthor}>
-            {item.authors?.[0] || item.author || 'Auteur inconnu'}
-          </Text>
-          <Text style={styles.newBookGenre}>
-            {item.genre || item.categories?.[0] || 'Non classé'}
-            {item.library?.acquisitionDate && ` • Ajouté le ${new Date(item.library.acquisitionDate).toLocaleDateString()}`}
-          </Text>
-          <Text style={styles.newBookDescription} numberOfLines={3}>
-            {item.description || 'Aucune description disponible'}
-          </Text>
-          {item.library?.location && (
-            <Text style={styles.locationText}>📍 {item.library.location}</Text>
-          )}
-        </View>
-      </TouchableOpacity>
-    );
-  };
+  const renderNewBook = ({ item }) => (
+    <BookCard 
+      book={item}
+      variant="horizontal"
+      onPress={() => navigation.navigate(ROUTES.BOOK_DETAIL, { book: item })}
+    />
+  );
 
   const renderSearchResult = ({ item }) => (
-    <TouchableOpacity 
-      style={styles.searchResultCard}
+    <BookCard 
+      book={item}
+      variant="horizontal"
       onPress={() => navigation.navigate(ROUTES.BOOK_DETAIL, { book: item })}
-    >
-      {item.cover || item.googleBooks?.imageLinks?.thumbnail ? (
-        <Image 
-          source={{ uri: item.cover || item.googleBooks?.imageLinks?.thumbnail }} 
-          style={styles.searchResultImage} 
-        />
-      ) : (
-        <View style={[styles.searchResultImage, styles.placeholderImage]}>
-          <Ionicons name="book" size={24} color={COLORS.textPrimary} />
-        </View>
-      )}
-      <View style={styles.searchResultInfo}>
-        <Text style={styles.searchResultTitle} numberOfLines={2}>{item.title}</Text>
-        <Text style={styles.searchResultAuthor} numberOfLines={1}>
-          {item.authors?.[0] || item.author || 'Auteur inconnu'}
-        </Text>
-        {(item.genre || item.categories?.[0]) && (
-          <Text style={styles.searchResultGenre}>
-            {item.genre || item.categories?.[0]}
-          </Text>
-        )}
-        {item.publishedDate && (
-          <Text style={styles.searchResultYear}>
-            {new Date(item.publishedDate).getFullYear()}
-          </Text>
-        )}
-        {item.library?.location && (
-          <Text style={styles.locationText}>📍 {item.library.location}</Text>
-        )}
-      </View>
-    </TouchableOpacity>
+    />
   );
 
   // Affichage d'erreur
@@ -497,13 +311,12 @@ const BookListScreen = ({ navigation }) => {
             Nouveautés ({newBooks.length})
           </Text>
           {newBooks.length > 0 ? (
-            <View style={styles.newBooksContainer}>
-              {newBooks.map((book) => (
-                <View key={book._id || book.id}>
-                  {renderNewBook({ item: book })}
-                </View>
-              ))}
-            </View>
+            <FlatList
+              data={newBooks}
+              renderItem={renderNewBook}
+              keyExtractor={(item) => item._id || item.id}
+              showsVerticalScrollIndicator={false}
+            />
           ) : (
             <Text style={styles.emptyText}>Aucune nouveauté</Text>
           )}
@@ -571,29 +384,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     marginLeft: SPACING.xs,
   },
-  searchContainer: {
-    marginBottom: SPACING.md,
-  },
-  searchInputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: COLORS.surface,
-    borderRadius: SPACING.borderRadius,
-    paddingHorizontal: SPACING.containerPadding,
-    height: SPACING.inputHeight,
-  },
-  searchIcon: {
-    marginRight: SPACING.md,
-  },
-  searchInput: {
-    flex: 1,
-    color: COLORS.textPrimary,
-    fontSize: 16,
-    height: '100%',
-  },
-  clearButton: {
-    padding: SPACING.xs,
-  },
   testButton: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -623,149 +413,6 @@ const styles = StyleSheet.create({
   },
   horizontalList: {
     paddingLeft: SPACING.containerPadding,
-  },
-  popularBookCard: {
-    width: 130,
-    marginRight: SPACING.md,
-  },
-  popularBookImage: {
-    width: 130,
-    height: 170,
-    borderRadius: SPACING.cardRadius,
-    marginBottom: SPACING.sm,
-  },
-  placeholderImage: {
-    backgroundColor: COLORS.accent,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  popularBookInfo: {
-    flex: 1,
-  },
-  popularBookTitle: {
-    ...globalStyles.subtitle,
-    fontSize: 14,
-    fontWeight: '600',
-    marginBottom: SPACING.xs,
-    lineHeight: 18,
-  },
-  popularBookAuthor: {
-    ...globalStyles.caption,
-    marginBottom: SPACING.sm,
-  },
-  statusBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    alignSelf: 'flex-start',
-    paddingHorizontal: SPACING.sm,
-    paddingVertical: 4,
-    borderRadius: 12,
-    marginBottom: SPACING.xs,
-  },
-  statusText: {
-    fontSize: 10,
-    fontWeight: '600',
-    marginLeft: 4,
-  },
-  locationText: {
-    ...globalStyles.caption,
-    fontSize: 10,
-    fontStyle: 'italic',
-  },
-  newBooksContainer: {
-    paddingHorizontal: SPACING.containerPadding,
-  },
-  newBookCard: {
-    flexDirection: 'row',
-    backgroundColor: COLORS.surface,
-    marginBottom: SPACING.md,
-    borderRadius: SPACING.cardRadius,
-    padding: SPACING.md,
-    shadowColor: COLORS.shadow,
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  newBookImageContainer: {
-    marginRight: SPACING.md,
-  },
-  newBookImage: {
-    width: 70,
-    height: 100,
-    borderRadius: SPACING.imageRadius,
-  },
-  newBookInfo: {
-    flex: 1,
-  },
-  newBookHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: SPACING.xs,
-  },
-  newBookTitle: {
-    ...globalStyles.title,
-    fontSize: 16,
-    flex: 1,
-    marginRight: SPACING.sm,
-    lineHeight: 20,
-  },
-  newBookAuthor: {
-    ...globalStyles.subtitle,
-    fontSize: 14,
-    marginBottom: SPACING.xs,
-  },
-  newBookGenre: {
-    ...globalStyles.caption,
-    marginBottom: SPACING.sm,
-  },
-  newBookDescription: {
-    ...globalStyles.body,
-    fontSize: 12,
-    lineHeight: 16,
-    marginBottom: SPACING.xs,
-  },
-  searchResultCard: {
-    flexDirection: 'row',
-    backgroundColor: COLORS.surface,
-    borderRadius: SPACING.cardRadius,
-    padding: SPACING.md,
-    marginHorizontal: SPACING.containerPadding,
-    marginBottom: SPACING.sm,
-  },
-  searchResultImage: {
-    width: 60,
-    height: 80,
-    borderRadius: SPACING.imageRadius,
-    marginRight: SPACING.md,
-  },
-  searchResultInfo: {
-    flex: 1,
-    justifyContent: 'center',
-  },
-  searchResultTitle: {
-    ...globalStyles.title,
-    fontSize: 16,
-    marginBottom: SPACING.xs,
-  },
-  searchResultAuthor: {
-    ...globalStyles.subtitle,
-    fontSize: 14,
-    marginBottom: SPACING.xs,
-  },
-  searchResultGenre: {
-    ...globalStyles.caption,
-    marginBottom: SPACING.xs,
-  },
-  searchResultYear: {
-    ...globalStyles.caption,
-    fontSize: 11,
-    fontStyle: 'italic',
-    marginBottom: SPACING.xs,
   },
   loadingContainer: {
     alignItems: 'center',
