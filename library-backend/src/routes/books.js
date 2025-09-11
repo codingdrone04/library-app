@@ -157,6 +157,40 @@ router.get('/search/suggestions', async (req, res) => {
   }
 });
 
+// GET /api/books/stats - Statistiques de la bibliothèque
+router.get('/stats', async (req, res) => {
+  try {
+    const stats = await Promise.all([
+      Book.countDocuments(),
+      Book.countDocuments({ status: 'available' }),
+      Book.countDocuments({ status: 'borrowed' }),
+      Book.countDocuments({ status: 'reserved' }),
+      Book.countDocuments({ status: 'damaged' }),
+      Book.countDocuments({ isEnriched: true })
+    ]);
+
+    res.json({
+      success: true,
+      data: {
+        total: stats[0],
+        available: stats[1],
+        borrowed: stats[2],
+        reserved: stats[3],
+        damaged: stats[4],
+        enriched: stats[5],
+        enrichmentRate: stats[0] > 0 ? Math.round((stats[5] / stats[0]) * 100) : 0
+      }
+    });
+
+  } catch (error) {
+    console.error('❌ Erreur GET /books/stats:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Erreur lors de la récupération des statistiques'
+    });
+  }
+});
+
 // GET /api/books/:id - Obtenir un livre par ID
 router.get('/:id', async (req, res) => {
   try {
@@ -471,40 +505,6 @@ router.post('/:id/enrich', async (req, res) => {
     res.status(500).json({
       success: false,
       error: 'Erreur lors de l\'enrichissement du livre'
-    });
-  }
-});
-
-// GET /api/books/stats - Statistiques de la bibliothèque
-router.get('/stats', async (req, res) => {
-  try {
-    const stats = await Promise.all([
-      Book.countDocuments(),
-      Book.countDocuments({ status: 'available' }),
-      Book.countDocuments({ status: 'borrowed' }),
-      Book.countDocuments({ status: 'reserved' }),
-      Book.countDocuments({ status: 'damaged' }),
-      Book.countDocuments({ isEnriched: true })
-    ]);
-
-    res.json({
-      success: true,
-      data: {
-        total: stats[0],
-        available: stats[1],
-        borrowed: stats[2],
-        reserved: stats[3],
-        damaged: stats[4],
-        enriched: stats[5],
-        enrichmentRate: stats[0] > 0 ? Math.round((stats[5] / stats[0]) * 100) : 0
-      }
-    });
-
-  } catch (error) {
-    console.error('❌ Erreur GET /books/stats:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Erreur lors de la récupération des statistiques'
     });
   }
 });
