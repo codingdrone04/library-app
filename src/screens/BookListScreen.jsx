@@ -88,25 +88,83 @@ const BookListScreen = ({ navigation }) => {
   };
 
   const handleSearch = async (term) => {
+    console.log('🔍 handleSearch appelée avec:', term);
+    
     setSearchTerm(term);
     setIsSearching(term.length > 0);
-
+  
     if (term.length > 2) {
       setSearchLoading(true);
       try {
+        console.log('📤 Envoi de la recherche...');
+        
         // Recherche dans la DB via l'API
         const results = await bookService.searchLibraryBooks(term);
+        
+        console.log('📥 Résultats reçus:', {
+          count: results?.length || 0,
+          results: results
+        });
+        
         setSearchResults(results || []);
-        console.log('🔍 Résultats recherche DB:', results?.length || 0);
+        
+        // Log pour debug
+        if (results && results.length > 0) {
+          console.log('✅ Premier résultat:', results[0]);
+        } else {
+          console.log('⚠️ Aucun résultat trouvé');
+          
+          // Test: récupérer tous les livres pour voir s'il y en a
+          const allBooks = await bookService.getLibraryBooks();
+          console.log('📚 Total livres en base:', allBooks.length);
+          
+          if (allBooks.length > 0) {
+            console.log('📝 Premier livre en base:', allBooks[0]);
+            console.log('🔍 Recherche "' + term + '" dans titre "' + allBooks[0].title + '":', 
+                       allBooks[0].title.toLowerCase().includes(term.toLowerCase()));
+          }
+        }
+        
       } catch (error) {
-        console.error('Search error:', error);
+        console.error('❌ Erreur recherche:', error);
         setSearchResults([]);
+        
+        // Afficher une alerte avec plus d'infos
+        Alert.alert(
+          'Erreur de recherche', 
+          `Impossible de rechercher: ${error.message}\n\nURL: ${bookService.getAPIUrl()}`,
+          [
+            { text: 'OK' },
+            { text: 'Tester API', onPress: () => testAPIConnection() }
+          ]
+        );
       } finally {
         setSearchLoading(false);
       }
     } else {
+      console.log('🔍 Terme trop court, reset des résultats');
       setSearchResults([]);
       setSearchLoading(false);
+    }
+  };
+
+  const testSearchFunction = async () => {
+    try {
+      console.log('🧪 === TEST DE RECHERCHE ===');
+      
+      // Test avec le service
+      const testResults = await bookService.testSearch('harry');
+      console.log('📊 Résultats test:', testResults);
+      
+      Alert.alert(
+        'Test de recherche',
+        `Recherche: ${testResults.searchResults?.length || 0} résultats\n` +
+        `Tous les livres: ${testResults.allBooks?.length || 0}\n` +
+        `Erreur: ${testResults.error || 'Aucune'}`,
+        [{ text: 'OK' }]
+      );
+    } catch (error) {
+      Alert.alert('Erreur test', error.message);
     }
   };
 

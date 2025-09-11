@@ -28,11 +28,31 @@ class BookService {
   // Recherche dans la bibliothèque
   async searchLibraryBooks(query, options = {}) {
     try {
-      console.log('🔍 Recherche:', query);
-      return await apiService.searchBooks(query, options);
+      console.log('🔍 Frontend - Recherche:', { query, options });
+      console.log('📍 API URL:', apiService.getBaseURL());
+      
+      const params = {
+        search: query,
+        ...options
+      };
+      
+      console.log('📤 Paramètres envoyés:', params);
+      
+      const response = await apiService.api.get('/books', { params });
+      
+      console.log('📥 Réponse brute:', response.data);
+      console.log('✅ Résultats trouvés:', response.data.data?.length || 0);
+      
+      return response.data.data || [];
     } catch (error) {
-      console.error('❌ Erreur searchLibraryBooks:', error);
-      throw error;
+      console.error('❌ Erreur searchLibraryBooks:', {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status,
+        url: error.config?.url,
+        params: error.config?.params
+      });
+      throw new Error(`Recherche échouée: ${error.message}`);
     }
   }
 
@@ -138,6 +158,35 @@ class BookService {
     } catch (error) {
       console.error('❌ Erreur getLibraryStats:', error);
       return {};
+    }
+  }
+
+  async testSearch(query = 'test') {
+    try {
+      console.log('🧪 Test de recherche avec:', query);
+      
+      // Test 1: Recherche normale
+      const results1 = await this.searchLibraryBooks(query);
+      console.log('📊 Test 1 (recherche):', results1.length, 'résultats');
+      
+      // Test 2: Récupération de tous les livres
+      const results2 = await this.getLibraryBooks();
+      console.log('📊 Test 2 (tous les livres):', results2.length, 'résultats');
+      
+      // Test 3: Test API direct
+      const response = await apiService.api.get('/books', {
+        params: { search: query }
+      });
+      console.log('📊 Test 3 (API directe):', response.data);
+      
+      return {
+        searchResults: results1,
+        allBooks: results2,
+        apiResponse: response.data
+      };
+    } catch (error) {
+      console.error('❌ Test échoué:', error);
+      return { error: error.message };
     }
   }
 

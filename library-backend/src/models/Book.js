@@ -247,6 +247,9 @@ bookSchema.methods.markAsEnriched = function() {
 // === MÉTHODES STATIQUES ===
 // Recherche textuelle avancée
 bookSchema.statics.searchBooks = function(query, filters = {}) {
+  console.log('🔍 Book.searchBooks appelée avec:', { query, filters });
+  
+  // Essayer d'abord la recherche textuelle MongoDB
   const searchQuery = {
     $text: { $search: query }
   };
@@ -256,10 +259,61 @@ bookSchema.statics.searchBooks = function(query, filters = {}) {
   if (filters.categories) searchQuery.categories = { $in: filters.categories };
   if (filters.authors) searchQuery.authors = { $in: filters.authors };
   if (filters.language) searchQuery.language = filters.language;
-  
+
+  console.log('📝 Requête MongoDB générée:', JSON.stringify(searchQuery, null, 2));
+
   return this.find(searchQuery, { score: { $meta: 'textScore' } })
-             .sort({ score: { $meta: 'textScore' } });
+             .sort({ score: { $meta: 'textScore' } })
+             .then(results => {
+               console.log('✅ Résultats recherche textuelle:', results.length);
+               
+               // Si pas de résultats avec recherche textuelle, essayer regex
+               if (results.length === 0) {
+                 console.log('🔄 Recherche textuelle vide, essai avec regex...');
+                 return this.find({
+                   $or: [
+                     { title: { $regex: query, $options: 'i' } },
+                     { authors: { $regex: query, $options: 'i' } },
+                     { description: { $regex: query, $options: 'i' } }
+                   ],
+                   ...filters
+                 });
+               }
+               
+               return results;
+             })
+             .catch(error => {
+               console.error('❌ Erreur recherche textuelle, fallback regex:', error);
+               
+               // Fallback avec regex si l'index textuel n'existe pas
+               return this.find({
+                 $or: [
+                   { title: { $regex: query, $options: 'i' } },
+                   { authors: { $regex: query, $options: 'i' } },
+                   { description: { $regex: query, $options: 'i' } }
+                 ],
+                 ...filters
+               });
+             });
 };
+
+// ===== CRÉATION D'INDEX (à ajouter après le schéma) =====
+
+// Créer l'index textuel si pas encore fait
+bookSchema.index({ 
+  title: 'text', 
+  'authors': 'text', 
+  description: 'text',
+  categories: 'text'
+}, {
+  weights: {
+    title: 10,
+    authors: 5,
+    categories: 3,
+    description: 1
+  },
+  name: 'book_text_search'
+});
 
 // Trouver par ISBN
 bookSchema.statics.findByISBN = function(isbn) {
