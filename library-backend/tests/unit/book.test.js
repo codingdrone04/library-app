@@ -1,49 +1,63 @@
-const path = require('path');
-require('dotenv').config({ path: path.join(__dirname, '../../.env') });
-
 const mongoose = require('mongoose');
+const { MongoMemoryServer } = require('mongodb-memory-server');
 const Book = require('../../src/models/Book');
 const { createTestBook } = require('../helpers/testData');
-const connectMongoDB = require('../../src/config/mongodb');
 
-describe('Book Model avec MongoDB Atlas', () => {
+describe('Book Model avec MongoDB Memory Server', () => {
+  let mongod;
 
   beforeAll(async () => {
-    console.log('🚀 Connexion à MongoDB Atlas (tests)...');
-    console.log('🔑 MONGODB_URI présent:', !!process.env.MONGODB_URI);
-    
-    if (!process.env.MONGODB_URI) {
-      console.error('❌ MONGODB_URI non défini dans les variables d\'environnement');
-      throw new Error('MONGODB_URI requis pour les tests');
-    }
-    
-    console.log('🔗 URI (masqué):', process.env.MONGODB_URI.replace(/\/\/[^@]+@/, '//***:***@'));
+    console.log('🚀 Démarrage MongoDB Memory Server pour Book tests...');
     
     try {
-      await connectMongoDB();
+      // Créer MongoDB Memory Server
+      mongod = await MongoMemoryServer.create({
+        binary: {
+          version: '6.0.9',
+          downloadDir: './node_modules/.cache/mongodb-memory-server',
+        },
+        instance: {
+          storageEngine: 'wiredTiger',
+          dbName: 'library-book-test',
+        },
+      });
+
+      const mongoUri = mongod.getUri();
+      console.log('📊 MongoDB Memory Server URI:', mongoUri);
+
+      // Se connecter avec Mongoose
+      await mongoose.connect(mongoUri);
       
-      console.log('✅ MongoDB Atlas connecté!');
+      console.log('✅ MongoDB Memory Server connecté!');
       console.log('📡 ReadyState:', mongoose.connection.readyState);
-      console.log('🏠 Host:', mongoose.connection.host);
       
+      // Nettoyer les livres de test existants
       await Book.deleteMany({ 'library.librarian': 'test' });
       console.log('🧹 Livres de test nettoyés');
       
     } catch (error) {
-      console.error('❌ Erreur connexion MongoDB Atlas:', error.message);
+      console.error('❌ Erreur setup MongoDB Memory Server:', error.message);
       throw error;
     }
   }, 30000);
 
   afterAll(async () => {
-    console.log('🧹 Nettoyage final...');
+    console.log('🧹 Nettoyage final Book tests...');
     
     try {
       await Book.deleteMany({ 'library.librarian': 'test' });
-      await mongoose.connection.close();
+      
+      if (mongoose.connection.readyState !== 0) {
+        await mongoose.disconnect();
+      }
+      
+      if (mongod) {
+        await mongod.stop();
+      }
+      
       console.log('✅ Livres de test supprimés et connexion fermée');
     } catch (error) {
-      console.error('❌ Erreur nettoyage:', error);
+      console.error('❌ Erreur nettoyage Book tests:', error);
     }
   }, 10000);
 
@@ -131,4 +145,43 @@ describe('Book Model avec MongoDB Atlas', () => {
     console.log('✅ Méthodes virtuelles OK');
   });
 
+  test('devrait valider les données requises', async () => {
+    const invalidBook = new Book({
+      // Pas de title ni de library
+      authors: ['Test Author']
+    });
+    
+    await expect(invalidBook.save()).rejects.toThrow();
+    console.log('✅ Validation données requises OK');
+  });
+
+  test('devrait créer des méthodes statiques', async () => {
+    // Créer quelques livres de test
+    await Book.create([
+      createTestBook({ 
+        title: 'Available Book 1',
+        status: 'available',
+        library: { ...createTestBook().library, librarian: 'test' }
+      }),
+      createTestBook({ 
+        title: 'Available Book 2',
+        status: 'available', 
+        library: { ...createTestBook().library, librarian: 'test' }
+      }),
+      createTestBook({ 
+        title: 'Borrowed Book',
+        status: 'borrowed',
+        library: { ...createTestBook().library, librarian: 'test' }
+      })
+    ]);
+
+    // Test méthode statique getByStatus
+    const availableBooks = await Book.getByStatus('available');
+    const filteredTestBooks = availableBooks.filter(book => 
+      book.library.librarian === 'test'
+    );
+    
+    expect(filteredTestBooks.length).toBe(2);
+    console.log('✅ Méthodes statiques OK');
+  });
 });
