@@ -2,7 +2,6 @@ import axios from 'axios';
 import { Platform } from 'react-native';
 import Constants from 'expo-constants';
 
-// Import du config local (à gitignorer)
 let localConfig = null;
 try {
   localConfig = require('../config/local').LOCAL_CONFIG;
@@ -43,7 +42,7 @@ class ApiService {
         return `http://localhost:3000/api`;
       }
     } else {
-      return 'https://your-production-api.com/api'; // À remplacer
+      return 'https://your-production-api.com/api';
     }
   }
 
@@ -96,7 +95,6 @@ class ApiService {
     }
   }
 
-  // ===== BOOKS =====
   
   async getLibraryBooks(options = {}) {
     try {
@@ -180,7 +178,6 @@ class ApiService {
     }
   }
 
-  // ===== LOANS =====
   
   async borrowBook(bookId, userId) {
     try {
@@ -209,7 +206,6 @@ class ApiService {
     }
   }
 
-  // ===== AUTH =====
   
   async login(username, password) {
     try {
@@ -240,7 +236,6 @@ class ApiService {
     }
   }
 
-  // ===== UTILS =====
   
   async testConnection() {
     try {

@@ -3,7 +3,6 @@ import apiService from './api';
 import { STORAGE_KEYS } from '../constants';
 
 class AuthService {
-  // Login avec vraie API
   async login(username, password) {
     try {
       
@@ -29,7 +28,6 @@ class AuthService {
     }
   }
 
-  // Register avec vraie API
   async register(userData) {
     try {
       
@@ -60,7 +58,6 @@ class AuthService {
     }
   }
 
-  // Vérifier le token avec l'API
   async verifyToken(token) {
     try {
       const response = await apiService.api.get('/auth/me', {
@@ -80,13 +77,11 @@ class AuthService {
     }
   }
 
-  // Store user data
   async storeUserData(user, token) {
     try {
       await AsyncStorage.setItem(STORAGE_KEYS.USER_DATA, JSON.stringify(user));
       await AsyncStorage.setItem(STORAGE_KEYS.USER_TOKEN, token);
       
-      // Configurer le token pour les futures requêtes API
       apiService.api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
       
     } catch (error) {
@@ -95,18 +90,15 @@ class AuthService {
     }
   }
 
-  // Get current user
   async getCurrentUser() {
     try {
       const userData = await AsyncStorage.getItem(STORAGE_KEYS.USER_DATA);
       const token = await AsyncStorage.getItem(STORAGE_KEYS.USER_TOKEN);
       
       if (userData && token) {
-        // Vérifier que le token est toujours valide
         const verifiedData = await this.verifyToken(token);
         
         if (verifiedData) {
-          // Configurer le token pour les requêtes API
           apiService.api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
           
           return {
@@ -115,7 +107,6 @@ class AuthService {
             isAuthenticated: true,
           };
         } else {
-          // Token invalide, nettoyer le stockage
           await this.clearStoredData();
         }
       }
@@ -135,7 +126,6 @@ class AuthService {
     }
   }
 
-  // Clear stored data
   async clearStoredData() {
     try {
       await AsyncStorage.multiRemove([
@@ -143,14 +133,12 @@ class AuthService {
         STORAGE_KEYS.USER_DATA,
       ]);
       
-      // Supprimer le token des headers API
       delete apiService.api.defaults.headers.common['Authorization'];
     } catch (error) {
       console.error('❌ Erreur clearStoredData:', error);
     }
   }
 
-  // Logout
   async logout() {
     try {
       await this.clearStoredData();
@@ -161,7 +149,6 @@ class AuthService {
     }
   }
 
-  // Méthodes utilitaires
   isLibrarian(user) {
     return user?.role === 'librarian' || user?.role === 'admin';
   }

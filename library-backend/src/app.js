@@ -61,7 +61,7 @@ app.get('/', (req, res) => {
   res.json({
     message: '📚 Library Management API',
     version: '1.0.0',
-    docs: '/api/docs', // TODO: Ajouter Swagger plus tard
+    docs: '/api/docs',
     endpoints: {
       auth: '/api/auth',
       books: '/api/books',
@@ -81,7 +81,6 @@ app.use('*', (req, res) => {
   });
 });
 
-// Error handling middleware (doit être en dernier)
 app.use(errorHandler);
 
 module.exports = app;

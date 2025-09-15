@@ -119,7 +119,7 @@ const BorrowedBooksScreen = ({ navigation }) => {
     
     if (book.renewalCount >= book.maxRenewals) {
       Alert.alert(
-        '🚫 Renouvellement impossible', 
+        'Renouvellement impossible', 
         'Vous avez atteint le nombre maximum de renouvellements pour ce livre.'
       );
       return;
@@ -177,7 +177,7 @@ const BorrowedBooksScreen = ({ navigation }) => {
       [
         { text: 'Annuler', style: 'cancel' },
         { 
-          text: '✅ Retourner', 
+          text: 'Retourner', 
           onPress: async () => {
             try {
               await api.returnBook(bookId, user.id);

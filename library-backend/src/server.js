@@ -5,33 +5,26 @@ const createUserModel = require('./models/User');
 
 const PORT = process.env.PORT || 3000;
 
-// Fonction pour démarrer le serveur
 async function startServer() {
   try {
     console.log('🚀 Démarrage du serveur Library API...');
     
-    // Connexion MongoDB (pour les livres)
     console.log('📚 Connexion à MongoDB...');
     await connectMongoDB();
     console.log('✅ MongoDB connecté !');
     
-    // Connexion PostgreSQL (pour les utilisateurs et emprunts)
     console.log('🐘 Connexion à PostgreSQL...');
     const sequelize = await connectPostgreSQL();
     console.log('✅ PostgreSQL connecté !');
     
-    // Initialiser les modèles
     console.log('📊 Initialisation des modèles...');
     const User = createUserModel(sequelize);
     
-    // Rendre les modèles disponibles pour les routes
     app.locals.models = { User };
     
-    // Synchroniser les tables
     await sequelize.sync({ alter: true });
     console.log('📋 Tables synchronisées !');
     
-    // Créer un utilisateur admin par défaut
     const adminExists = await User.findOne({ where: { username: 'admin' } });
     if (!adminExists) {
       console.log('👨‍💼 Création de l\'admin par défaut...');
@@ -46,7 +39,6 @@ async function startServer() {
       console.log('✅ Admin créé: admin / admin');
     }
 
-    // Créer un utilisateur normal par défaut
     const userExists = await User.findOne({ where: { username: 'user' } });
     if (!userExists) {
       console.log('👤 Création de l\'utilisateur par défaut...');
@@ -61,7 +53,6 @@ async function startServer() {
       console.log('✅ Utilisateur créé: user / user');
     }
     
-    // Démarrage du serveur
     const server = app.listen(PORT, '0.0.0.0', () => {
       console.log(`
     🎉 ========================================
@@ -77,7 +68,6 @@ async function startServer() {
       `);
     });
 
-    // Gestion gracieuse de l'arrêt
     process.on('SIGTERM', () => {
       console.log('🛑 SIGTERM received. Shutting down gracefully...');
       server.close(() => {
@@ -92,5 +82,4 @@ async function startServer() {
   }
 }
 
-// Démarrer le serveur
 startServer();

@@ -286,7 +286,6 @@ const BookDetailScreen = ({ route, navigation }) => {
     );
   }
 
-  // ✅ Utiliser les données formatées
   const bookData = getBookData(book);
   const statusInfo = getStatusInfo(bookData.status, bookData.borrowedBy);
 
@@ -448,7 +447,6 @@ const BookDetailScreen = ({ route, navigation }) => {
   );
 };
 
-// Styles inchangés
 const styles = StyleSheet.create({
   container: {
     flex: 1,

@@ -24,14 +24,12 @@ const LoginScreen = ({ navigation }) => {
   
   const { login, isLoading, error, clearError, isAuthenticated } = useAuth();
 
-  // Clear error when component mounts or when inputs change
   useEffect(() => {
     if (error) {
       clearError();
     }
   }, [username, password]);
 
-  // Rediriger si déjà connecté
   useEffect(() => {
     if (isAuthenticated) {
       navigation.replace('MainTabs');
@@ -39,7 +37,6 @@ const LoginScreen = ({ navigation }) => {
   }, [isAuthenticated, navigation]);
 
   const handleLogin = async () => {    
-    // Basic validation
     if (!username.trim()) {
       Alert.alert('Erreur', 'Veuillez saisir votre nom d\'utilisateur');
       return;

@@ -11,7 +11,6 @@ const BookCard = ({
   showLocation = true,
   showStatus = true
 }) => {
-  // ✅ Extraction des données avec fallbacks (amélioré)
   const bookData = {
     title: book?.title || 'Titre non disponible',
     author: book?.authors?.[0] || book?.author || 'Auteur inconnu',
@@ -21,7 +20,6 @@ const BookCard = ({
     genre: book?.genre || book?.categories?.[0] || null,
   };
 
-  // ✅ Logique du badge de statut (centralisée)
   const getStatusInfo = (status) => {
     switch (status) {
       case 'available':
@@ -59,7 +57,6 @@ const BookCard = ({
 
   const statusInfo = getStatusInfo(bookData.status);
 
-  // ✅ Rendu de l'image (amélioré)
   const renderCover = () => {
     const coverStyle = variant === 'compact' ? styles.compactCover :
                       variant === 'horizontal' ? styles.horizontalCover : 
@@ -86,7 +83,6 @@ const BookCard = ({
     );
   };
 
-  // ✅ Rendu du badge de statut
   const renderStatusBadge = () => {
     if (!showStatus) return null;
 
@@ -100,9 +96,6 @@ const BookCard = ({
     );
   };
 
-  // ✅ NOUVELLES VARIANTES (en plus de votre variante par défaut)
-
-  // Variante horizontale (pour les listes de résultats)
   if (variant === 'horizontal') {
     return (
       <TouchableOpacity onPress={() => onPress?.(book)} style={styles.horizontalCard}>
@@ -132,7 +125,6 @@ const BookCard = ({
     );
   }
 
-  // Variante compacte (pour les grilles horizontales)
   if (variant === 'compact') {
     return (
       <TouchableOpacity onPress={() => onPress?.(book)} style={styles.compactCard}>
@@ -156,7 +148,6 @@ const BookCard = ({
     );
   }
 
-  // ✅ VARIANTE PAR DÉFAUT (votre code original amélioré)
   return (
     <TouchableOpacity onPress={() => onPress?.(book)} style={styles.card}>
       <View style={globalStyles.row}>
@@ -182,7 +173,6 @@ const BookCard = ({
 };
 
 const styles = StyleSheet.create({
-  // ✅ Votre style existant (conservé)
   card: {
     ...mixins.card(true),
     marginHorizontal: SPACING.containerPadding,
@@ -199,9 +189,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   
-  // ✅ NOUVEAUX STYLES pour les variantes
 
-  // Variante horizontale
   horizontalCard: {
     flexDirection: 'row',
     backgroundColor: COLORS.surface,
@@ -240,7 +228,6 @@ const styles = StyleSheet.create({
     marginBottom: SPACING.sm,
   },
 
-  // Variante compacte  
   compactCard: {
     width: 130,
     marginRight: SPACING.md,
@@ -266,7 +253,6 @@ const styles = StyleSheet.create({
     marginBottom: SPACING.sm,
   },
 
-  // Styles communs
   placeholderCover: {
     backgroundColor: COLORS.accent,
     justifyContent: 'center',

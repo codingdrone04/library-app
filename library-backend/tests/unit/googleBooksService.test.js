@@ -1,6 +1,5 @@
 const googleBooksService = require('../../src/services/googleBooksService');
 
-// Mock axios pour éviter les vraies requêtes HTTP
 jest.mock('axios');
 const axios = require('axios');
 
@@ -35,7 +34,6 @@ describe('Google Books Service', () => {
   test('should handle search errors gracefully', async () => {
     axios.get.mockRejectedValue(new Error('Network error'));
 
-    // ✅ CORRECTION: Le message d'erreur correct dans le code source
     await expect(googleBooksService.searchBooks('test')).rejects.toThrow('Impossible de rechercher sur Google Books');
   });
 
@@ -71,7 +69,6 @@ describe('Google Books Service', () => {
     expect(result).toBeNull();
   });
 
-  // ✅ NOUVEAUX TESTS pour améliorer la couverture
   test('should format book data correctly', async () => {
     const mockResponse = {
       data: {
@@ -118,7 +115,6 @@ describe('Google Books Service', () => {
     expect(book.googleBooks?.averageRating).toBe(4.5);
     expect(book.ratingsCount).toBe(100);
     
-    // Vérifier que la description HTML est nettoyée
     expect(book.description).toBe('Test description with  tags');
   });
 
@@ -129,7 +125,6 @@ describe('Google Books Service', () => {
           id: 'incomplete-book',
           volumeInfo: {
             title: 'Incomplete Book'
-            // Données manquantes volontairement
           }
         }]
       }

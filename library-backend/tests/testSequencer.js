@@ -21,7 +21,6 @@ class CustomSequencer extends Sequencer {
         return orderA - orderB;
       }
       
-      // Si même type, trier par nom de fichier
       return testA.path.localeCompare(testB.path);
     });
   }

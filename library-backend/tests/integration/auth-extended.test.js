@@ -38,7 +38,6 @@ describe('Authentication Extended Tests', () => {
         .post('/api/auth/register')
         .send(userData);
 
-      // Le middleware de validation devrait rejeter cela
       expect(response.status).toBe(201);
     });
 
@@ -146,7 +145,7 @@ describe('Authentication Extended Tests', () => {
         username: 'testuser',
         email: 'test@example.com',
         password: 'password123',
-        role: 'superadmin' // Rôle invalide
+        role: 'superadmin'
       };
 
       const response = await request(app)
@@ -154,7 +153,7 @@ describe('Authentication Extended Tests', () => {
         .send(userData)
         .expect(201);
 
-      expect(response.body.data.user.role).toBe('user'); // Devrait fallback sur 'user'
+      expect(response.body.data.user.role).toBe('user');
     });
   });
 
@@ -185,7 +184,6 @@ describe('Authentication Extended Tests', () => {
     });
 
     test('devrait accepter les tokens avec différents formats Bearer', async () => {
-      // Créer un utilisateur et récupérer son token
       const registerResponse = await request(app)
         .post('/api/auth/register')
         .send({
@@ -199,7 +197,6 @@ describe('Authentication Extended Tests', () => {
 
       const token = registerResponse.body.data.token;
 
-      // Tester avec "Bearer "
       const response1 = await request(app)
         .get('/api/auth/me')
         .set('Authorization', `Bearer ${token}`)
@@ -211,14 +208,13 @@ describe('Authentication Extended Tests', () => {
 
   describe('User Status Management', () => {
     test('devrait rejeter la connexion d\'un utilisateur inactif', async () => {
-      // Créer un utilisateur
       const user = await User.create({
         firstname: 'Inactive',
         lastname: 'User',
         username: 'inactive',
         email: 'inactive@example.com',
         password_hash: 'password123',
-        is_active: false // Utilisateur inactif
+        is_active: false
       });
 
       const response = await request(app)
@@ -228,7 +224,6 @@ describe('Authentication Extended Tests', () => {
           password: 'password123'
         });
 
-      // Devrait être rejeté car findByUsernameOrEmail filtre sur is_active: true
       expect(response.status).toBe(401);
     });
 
@@ -246,7 +241,6 @@ describe('Authentication Extended Tests', () => {
       const beforeLogin = await User.findOne({ where: { username: 'logintime' } });
       const initialLastLogin = beforeLogin.last_login;
 
-      // Attendre un petit moment
       await new Promise(resolve => setTimeout(resolve, 10));
 
       await request(app)

@@ -1,4 +1,3 @@
-// src/styles/globalStyles.jsx
 import { StyleSheet } from 'react-native';
 import { COLORS, SPACING, FONT_SIZES, FONT_WEIGHTS } from '../constants';
 
@@ -118,7 +117,6 @@ export const globalStyles = StyleSheet.create({
 });
 
 export const mixins = {
-  // Card mixin (utilisé dans BookCard)
   card: (elevated = true, padding = 'default') => {
     const paddingOptions = {
       small: SPACING.sm,

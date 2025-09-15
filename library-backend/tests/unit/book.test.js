@@ -10,7 +10,7 @@ describe('Book Model avec MongoDB Memory Server', () => {
     console.log('🚀 Démarrage MongoDB Memory Server pour Book tests...');
     
     try {
-      // Créer MongoDB Memory Server
+
       mongod = await MongoMemoryServer.create({
         binary: {
           version: '6.0.9',
@@ -25,13 +25,11 @@ describe('Book Model avec MongoDB Memory Server', () => {
       const mongoUri = mongod.getUri();
       console.log('📊 MongoDB Memory Server URI:', mongoUri);
 
-      // Se connecter avec Mongoose
       await mongoose.connect(mongoUri);
       
       console.log('✅ MongoDB Memory Server connecté!');
       console.log('📡 ReadyState:', mongoose.connection.readyState);
       
-      // Nettoyer les livres de test existants
       await Book.deleteMany({ 'library.librarian': 'test' });
       console.log('🧹 Livres de test nettoyés');
       
@@ -100,7 +98,6 @@ describe('Book Model avec MongoDB Memory Server', () => {
   });
 
   test('devrait pouvoir chercher par statut', async () => {
-    // Créer 2 livres avec statuts différents
     await Book.create([
       createTestBook({ 
         title: 'Livre Disponible', 
@@ -114,7 +111,6 @@ describe('Book Model avec MongoDB Memory Server', () => {
       })
     ]);
 
-    // Chercher seulement dans les livres de test
     const availableBooks = await Book.find({ 
       status: 'available', 
       'library.librarian': 'test' 
@@ -139,15 +135,14 @@ describe('Book Model avec MongoDB Memory Server', () => {
     
     const saved = await book.save();
     
-    expect(saved.author).toBe('Premier Auteur'); // Virtual field
-    expect(saved.isAvailable()).toBe(true); // Instance method
+    expect(saved.author).toBe('Premier Auteur');
+    expect(saved.isAvailable()).toBe(true);
     
     console.log('✅ Méthodes virtuelles OK');
   });
 
   test('devrait valider les données requises', async () => {
     const invalidBook = new Book({
-      // Pas de title ni de library
       authors: ['Test Author']
     });
     
@@ -156,7 +151,6 @@ describe('Book Model avec MongoDB Memory Server', () => {
   });
 
   test('devrait créer des méthodes statiques', async () => {
-    // Créer quelques livres de test
     await Book.create([
       createTestBook({ 
         title: 'Available Book 1',
@@ -175,7 +169,6 @@ describe('Book Model avec MongoDB Memory Server', () => {
       })
     ]);
 
-    // Test méthode statique getByStatus
     const availableBooks = await Book.getByStatus('available');
     const filteredTestBooks = availableBooks.filter(book => 
       book.library.librarian === 'test'

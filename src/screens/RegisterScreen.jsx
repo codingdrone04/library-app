@@ -33,7 +33,6 @@ const RegisterScreen = ({ navigation }) => {
   
   const { register, isLoading, error, clearError } = useAuth();
 
-  // Clear error when component mounts or when inputs change
   useEffect(() => {
     if (error) {
       clearError();
@@ -46,7 +45,6 @@ const RegisterScreen = ({ navigation }) => {
       [field]: value
     }));
     
-    // Clear field error when user starts typing
     if (errors[field]) {
       setErrors(prev => ({
         ...prev,
@@ -58,45 +56,38 @@ const RegisterScreen = ({ navigation }) => {
   const validateForm = () => {
     const newErrors = {};
 
-    // Firstname validation
     if (!formData.firstname.trim()) {
       newErrors.firstname = 'Le prénom est requis';
     }
 
-    // Lastname validation
     if (!formData.lastname.trim()) {
       newErrors.lastname = 'Le nom est requis';
     }
 
-    // Username validation
     if (!formData.username.trim()) {
       newErrors.username = 'Le nom d\'utilisateur est requis';
     } else if (formData.username.length < VALIDATION.USERNAME_MIN_LENGTH) {
       newErrors.username = `Le nom d'utilisateur doit contenir au moins ${VALIDATION.USERNAME_MIN_LENGTH} caractères`;
     }
 
-    // Email validation
     if (!formData.email.trim()) {
       newErrors.email = 'L\'email est requis';
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
       newErrors.email = 'Format d\'email invalide';
     }
 
-    // Password validation
     if (!formData.password.trim()) {
       newErrors.password = 'Le mot de passe est requis';
     } else if (formData.password.length < VALIDATION.PASSWORD_MIN_LENGTH) {
       newErrors.password = `Le mot de passe doit contenir au moins ${VALIDATION.PASSWORD_MIN_LENGTH} caractères`;
     }
 
-    // Confirm password validation
     if (!formData.confirmPassword.trim()) {
       newErrors.confirmPassword = 'Veuillez confirmer le mot de passe';
     } else if (formData.password !== formData.confirmPassword) {
       newErrors.confirmPassword = 'Les mots de passe ne correspondent pas';
     }
 
-    // Age validation (optional)
     if (formData.age && (formData.age < VALIDATION.AGE_MIN || formData.age > VALIDATION.AGE_MAX)) {
       newErrors.age = `L'âge doit être entre ${VALIDATION.AGE_MIN} et ${VALIDATION.AGE_MAX} ans`;
     }

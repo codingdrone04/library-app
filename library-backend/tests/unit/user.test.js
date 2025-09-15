@@ -9,15 +9,12 @@ describe('User Model', () => {
   let User;
 
   beforeAll(async () => {
-    // Créer une instance SQLite en mémoire pour les tests
     sequelize = new Sequelize('sqlite::memory:', {
       logging: false
     });
     
-    // Créer le modèle User
     User = createUserModel(sequelize);
     
-    // Synchroniser la base de données
     await sequelize.sync({ force: true });
   });
 
@@ -26,7 +23,6 @@ describe('User Model', () => {
   });
 
   beforeEach(async () => {
-    // Nettoyer les données avant chaque test
     await User.destroy({ where: {} });
   });
 

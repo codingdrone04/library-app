@@ -11,21 +11,16 @@ describe('Authentication API Complete Tests', () => {
   beforeAll(async () => {
     console.log('🔐 Setup Auth Tests...');
     
-    // Start in-memory databases
     await setupDatabase();
     
-    // Get sequelize instance and create User model
     sequelize = getSequelizeInstance();
     User = createUserModel(sequelize);
     
-    // Make models available to the app
     app.locals.models = { User };
     
-    // Sync database
     await sequelize.sync({ force: true });
     
-    // Start the Express server
-    server = app.listen(0); // Use port 0 for random available port
+    server = app.listen(0);
     
     console.log('✅ Auth test environment ready');
   }, 60000);
@@ -33,19 +28,16 @@ describe('Authentication API Complete Tests', () => {
   afterAll(async () => {
     console.log('🧹 Cleaning up auth tests...');
     
-    // Close the server
     if (server) {
       await new Promise((resolve) => server.close(resolve));
     }
     
-    // Teardown database
     await teardownDatabase();
     
     console.log('✅ Auth tests cleanup complete');
   }, 30000);
 
   beforeEach(async () => {
-    // Clean up users before each test
     if (User) {
       await User.destroy({ where: {}, truncate: true });
     }
@@ -88,7 +80,6 @@ describe('Authentication API Complete Tests', () => {
 
       expect(response.status).toBe(201);
 
-      // Check the database directly
       const user = await User.findOne({ where: { username: userData.username } });
       expect(user.password_hash).toBeDefined();
       expect(user.password_hash).not.toBe(userData.password);
@@ -104,13 +95,11 @@ describe('Authentication API Complete Tests', () => {
         password: 'password123'
       };
 
-      // Create first user
       await request(app)
         .post('/api/auth/register')
         .send(userData)
         .expect(201);
 
-      // Try to create second user with same username
       const duplicateUser = {
         ...userData,
         email: 'second@example.com'
@@ -133,13 +122,11 @@ describe('Authentication API Complete Tests', () => {
         password: 'password123'
       };
 
-      // Create first user
       await request(app)
         .post('/api/auth/register')
         .send(userData)
         .expect(201);
 
-      // Try to create second user with same email
       const duplicateUser = {
         ...userData,
         username: 'secondemail'
@@ -217,7 +204,6 @@ describe('Authentication API Complete Tests', () => {
 
   describe('POST /api/auth/login', () => {
     beforeEach(async () => {
-      // Create a test user for login tests
       await request(app)
         .post('/api/auth/register')
         .send({
@@ -312,7 +298,6 @@ describe('Authentication API Complete Tests', () => {
     let userToken;
 
     beforeEach(async () => {
-      // Create and login a user to get token
       const registerResponse = await request(app)
         .post('/api/auth/register')
         .send({
@@ -356,7 +341,6 @@ describe('Authentication API Complete Tests', () => {
     });
 
     test('should reject expired token', async () => {
-      // Create a token with very short expiry
       const jwt = require('jsonwebtoken');
       const expiredToken = jwt.sign(
         { userId: 999, username: 'expired', role: 'user' },
@@ -364,7 +348,6 @@ describe('Authentication API Complete Tests', () => {
         { expiresIn: '1ms' }
       );
 
-      // Wait a moment to ensure token expires
       await new Promise(resolve => setTimeout(resolve, 10));
 
       const response = await request(app)
@@ -392,7 +375,6 @@ describe('Authentication API Complete Tests', () => {
     });
 
     test('should reject token for inactive user', async () => {
-      // First deactivate the user
       await User.update(
         { is_active: false },
         { where: { username: 'metest' } }
@@ -445,7 +427,6 @@ describe('Authentication API Complete Tests', () => {
       const jwt = require('jsonwebtoken');
       const decoded = jwt.decode(token);
 
-      // Token should have expiration time
       expect(decoded.exp).toBeDefined();
       expect(decoded.exp).toBeGreaterThan(decoded.iat);
     });

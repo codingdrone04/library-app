@@ -87,7 +87,7 @@ describe('Book Model Methods', () => {
 
       const recent = await Book.getRecent(5);
       expect(recent).toHaveLength(2);
-      expect(recent[0].title).toBe('Recent Book'); // Le plus récent en premier
+      expect(recent[0].title).toBe('Recent Book');
     });
 
     test('searchBooks devrait rechercher dans le texte', async () => {
@@ -106,13 +106,11 @@ describe('Book Model Methods', () => {
         }
       ]);
 
-      // Attendre que l'index soit créé
       await new Promise(resolve => setTimeout(resolve, 100));
 
       const results = await Book.searchBooks('Harry');
-      expect(results.length).toBeGreaterThanOrEqual(0); // Peut être 0 si l'index n'est pas encore créé
+      expect(results.length).toBeGreaterThanOrEqual(0);
       
-      // Test de fallback avec regex
       const regexResults = await Book.find({
         $or: [
           { title: { $regex: 'Harry', $options: 'i' } },
@@ -238,7 +236,6 @@ describe('Book Model Methods', () => {
         library: { location: 'A-1', librarian: 'test' }
       });
 
-      // Devrait préférer ISBN-13
       expect(book.isbn).toBe('9781234567890');
     });
   });

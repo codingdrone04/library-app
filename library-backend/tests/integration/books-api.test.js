@@ -9,19 +9,16 @@ describe('Books API Integration Tests', () => {
   beforeAll(async () => {
     console.log('🌐 Configuration API Tests...');
     
-    // ✅ CORRECTION: Utiliser MongoDB Memory Server via setup
     await setupDatabase();
     
     console.log('✅ MongoDB Memory Server connecté pour tests API');
   }, 30000);
 
   afterAll(async () => {
-    // ✅ CORRECTION: Nettoyer via teardown
     await teardownDatabase();
     console.log('✅ Tests API terminés, connexion fermée');
   }, 10000);
 
-  // ✅ Nettoyer AVANT ET APRÈS chaque test
   beforeEach(async () => {
     await Book.deleteMany({ 'library.librarian': 'test' });
   });
@@ -32,7 +29,6 @@ describe('Books API Integration Tests', () => {
 
   describe('GET /api/books', () => {
     test('devrait retourner seulement nos livres de test', async () => {
-      // Créer 2 livres de test
       await Book.create([
         createTestBook({ 
           title: 'Test Book 1',
@@ -50,7 +46,6 @@ describe('Books API Integration Tests', () => {
 
       expect(response.body.success).toBe(true);
       
-      // Filtrer pour avoir seulement nos livres de test
       const testBooks = response.body.data.filter(book => 
         book.library?.librarian === 'test'
       );
@@ -81,7 +76,6 @@ describe('Books API Integration Tests', () => {
 
       expect(response.body.success).toBe(true);
       
-      // Vérifier que nos livres de test disponibles sont là
       const testAvailableBooks = response.body.data.filter(book => 
         book.library?.librarian === 'test' && book.status === 'available'
       );
@@ -92,9 +86,7 @@ describe('Books API Integration Tests', () => {
       console.log('✅ GET /api/books?status=available OK');
     }, 30000);
 
-    // ✅ NOUVEAU TEST: Pagination
     test('devrait supporter la pagination', async () => {
-      // Créer plusieurs livres
       const books = Array.from({ length: 5 }, (_, i) => 
         createTestBook({ 
           title: `Test Book ${i + 1}`,
@@ -155,12 +147,10 @@ describe('Books API Integration Tests', () => {
       console.log('✅ POST validation titre OK');
     });
 
-    // ✅ NOUVEAU TEST: Validation location
     test('devrait refuser un livre sans localisation', async () => {
       const invalidData = {
         title: 'Test Book',
         authors: ['Test Author']
-        // location manquante
       };
 
       const response = await request(app)
@@ -172,9 +162,7 @@ describe('Books API Integration Tests', () => {
       expect(response.body.error).toMatch(/localisation/i);
     });
 
-    // ✅ NOUVEAU TEST: ISBN duplicate
     test('devrait refuser un livre avec ISBN existant', async () => {
-      // Créer un livre avec ISBN
       await Book.create(createTestBook({
         title: 'Premier livre',
         identifiers: [{ type: 'ISBN_13', identifier: '9781234567890' }],
@@ -217,7 +205,7 @@ describe('Books API Integration Tests', () => {
     }, 30000);
 
     test('devrait retourner 404 pour livre inexistant', async () => {
-      const fakeId = '507f1f77bcf86cd799439011'; // ObjectId valide mais inexistant
+      const fakeId = '507f1f77bcf86cd799439011';
 
       const response = await request(app)
         .get(`/api/books/${fakeId}`)
@@ -228,7 +216,6 @@ describe('Books API Integration Tests', () => {
       console.log('✅ GET /api/books/:id (404) OK');
     });
 
-    // ✅ NOUVEAU TEST: ID invalide
     test('devrait retourner 500 pour ID invalide', async () => {
       const response = await request(app)
         .get('/api/books/invalid-id')
@@ -238,7 +225,6 @@ describe('Books API Integration Tests', () => {
     });
   });
 
-  // ✅ NOUVEAUX TESTS pour améliorer la couverture
   describe('PUT /api/books/:id', () => {
     test('devrait modifier un livre existant', async () => {
       const book = await Book.create(createTestBook({
@@ -276,7 +262,6 @@ describe('Books API Integration Tests', () => {
 
       expect(response.body.success).toBe(true);
       
-      // Vérifier que le livre est supprimé
       const deletedBook = await Book.findById(book._id);
       expect(deletedBook).toBeNull();
     });
@@ -299,7 +284,6 @@ describe('Books API Integration Tests', () => {
 
   describe('GET /api/books/stats', () => {
     test('devrait retourner les statistiques', async () => {
-      // Créer quelques livres de test
       await Book.create([
         createTestBook({ status: 'available', library: { ...createTestBook().library, librarian: 'test' } }),
         createTestBook({ status: 'borrowed', library: { ...createTestBook().library, librarian: 'test' } }),

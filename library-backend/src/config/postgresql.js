@@ -22,7 +22,6 @@ const connectPostgreSQL = async () => {
       }
     );
 
-    // Tester la connexion
     await sequelize.authenticate();
     console.log('✅ PostgreSQL connecté !');
     

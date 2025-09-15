@@ -6,7 +6,6 @@ class GoogleBooksService {
     this.apiKey = process.env.GOOGLE_BOOKS_API_KEY; // Optionnel
   }
 
-  // Recherche par titre, auteur, ou requête générale
   async searchBooks(query, maxResults = 10) {
     try {
       const params = {
@@ -43,7 +42,6 @@ class GoogleBooksService {
     }
   }
 
-  // Recherche spécifique par ISBN
   async searchByISBN(isbn) {
     try {
       const cleanISBN = isbn.replace(/[-\s]/g, '');
@@ -64,7 +62,6 @@ class GoogleBooksService {
     }
   }
 
-  // Obtenir détails complets d'un livre par ID Google Books
   async getBookDetails(volumeId) {
     try {
       console.log(`📚 Récupération détails: ${volumeId}`);
@@ -89,12 +86,10 @@ class GoogleBooksService {
     }
   }
 
-  // Formate les données Google Books pour notre modèle
   formatBookData(item) {
     const volumeInfo = item.volumeInfo || {};
     const accessInfo = item.accessInfo || {};
     
-    // Extraction des identifiants (ISBN, etc.)
     const identifiers = [];
     if (volumeInfo.industryIdentifiers) {
       volumeInfo.industryIdentifiers.forEach(id => {
@@ -105,7 +100,6 @@ class GoogleBooksService {
       });
     }
 
-    // URLs d'images avec différentes tailles
     const imageLinks = volumeInfo.imageLinks || {};
     const cover = imageLinks.thumbnail ||
                   imageLinks.small ||
@@ -114,7 +108,6 @@ class GoogleBooksService {
                   imageLinks.extraLarge ||
                   null;
 
-    // Nettoyage de la description (enlever HTML)
     let description = volumeInfo.description || '';
     if (description) {
       description = description.replace(/<[^>]*>/g, ''); // Remove HTML tags
@@ -123,29 +116,23 @@ class GoogleBooksService {
     }
 
     return {
-      // Données de base
       title: volumeInfo.title || 'Titre inconnu',
       subtitle: volumeInfo.subtitle || '',
       authors: volumeInfo.authors || ['Auteur inconnu'],
       description,
       
-      // Métadonnées
       categories: volumeInfo.categories || [],
       genre: volumeInfo.categories ? volumeInfo.categories[0] : 'Non classé',
       language: volumeInfo.language || 'fr',
       
-      // Publication
       publisher: volumeInfo.publisher || '',
       publishedDate: volumeInfo.publishedDate || '',
       pageCount: volumeInfo.pageCount || 0,
       
-      // Identifiants
       identifiers,
       
-      // Images
       cover,
       
-      // Données Google Books spécifiques
       googleBooks: {
         googleBooksId: item.id,
         previewLink: volumeInfo.previewLink,
@@ -159,18 +146,15 @@ class GoogleBooksService {
         imageLinks
       },
       
-      // Flags
       isEnriched: true,
       lastEnrichmentDate: new Date()
     };
   }
 
-  // Recherche de livres similaires
   async findSimilarBooks(book, maxResults = 6) {
     try {
       let queries = [];
       
-      // Stratégies de recherche
       if (book.categories && book.categories.length > 0) {
         queries.push(`subject:${book.categories[0]}`);
       }
@@ -183,11 +167,9 @@ class GoogleBooksService {
         queries.push(book.genre);
       }
       
-      // Essayer chaque stratégie
       for (const query of queries) {
         const results = await this.searchBooks(query, maxResults * 2);
         
-        // Filtrer le livre actuel
         const filtered = results.filter(result => 
           result.googleBooks?.googleBooksId !== book.googleBooks?.googleBooksId &&
           result.title !== book.title
@@ -205,7 +187,6 @@ class GoogleBooksService {
     }
   }
 
-  // Recherche avec suggestions d'autocomplétion
   async getSearchSuggestions(query, maxResults = 5) {
     try {
       if (query.length < 2) return [];
@@ -224,13 +205,11 @@ class GoogleBooksService {
     }
   }
 
-  // Validation d'ISBN
   isValidISBN(isbn) {
     const cleanISBN = isbn.replace(/[-\s]/g, '');
     return /^(97[89])?\d{9}[\dX]$/.test(cleanISBN);
   }
 
-  // Nettoyage d'ISBN
   cleanISBN(isbn) {
     return isbn.replace(/[-\s]/g, '').toUpperCase();
   }

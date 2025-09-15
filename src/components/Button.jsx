@@ -15,11 +15,10 @@ const Button = ({
   iconPosition = 'left',
   style,
   textStyle,
-  fullWidth = false, // ✅ Nouvelle prop pour contrôler la largeur
+  fullWidth = false,
   ...props 
 }) => {
   
-  // ✅ Utilise vos styles existants comme base
   const getButtonStyle = () => {
     let baseStyle;
     
@@ -31,7 +30,7 @@ const Button = ({
     
     return [
       baseStyle,
-      !fullWidth && { alignSelf: 'center' }, // ✅ Pas full width par défaut
+      !fullWidth && { alignSelf: 'center' },
       (disabled || loading) && { opacity: 0.6 },
       style
     ];

@@ -1,7 +1,6 @@
 import React, { createContext, useContext, useReducer, useEffect } from 'react';
 import authService from '../services/authService';
 
-// Initial state
 const initialState = {
   user: null,
   token: null,
@@ -10,7 +9,6 @@ const initialState = {
   error: null,
 };
 
-// Action types
 const AUTH_ACTIONS = {
   LOGIN_START: 'LOGIN_START',
   LOGIN_SUCCESS: 'LOGIN_SUCCESS',
@@ -24,7 +22,6 @@ const AUTH_ACTIONS = {
   SET_USER: 'SET_USER',
 };
 
-// Reducer
 const authReducer = (state, action) => {
   switch (action.type) {
     case AUTH_ACTIONS.LOGIN_START:
@@ -93,14 +90,11 @@ const authReducer = (state, action) => {
   }
 };
 
-// Create context
 const AuthContext = createContext();
 
-// Auth Provider Component
 export const AuthProvider = ({ children }) => {
   const [state, dispatch] = useReducer(authReducer, initialState);
 
-  // Check if user is authenticated on app start
   useEffect(() => {
     checkAuthStatus();
   }, []);
@@ -121,7 +115,6 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // Login function
   const login = async (username, password) => {
     try {
       dispatch({ type: AUTH_ACTIONS.LOGIN_START });
@@ -143,7 +136,6 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // Register function
   const register = async (userData) => {
     try {
       dispatch({ type: AUTH_ACTIONS.REGISTER_START });
@@ -165,24 +157,20 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // Logout function
   const logout = async () => {
     try {
       await authService.logout();
       dispatch({ type: AUTH_ACTIONS.LOGOUT });
     } catch (error) {
       console.error('Logout error:', error);
-      // Even if logout fails, clear the local state
       dispatch({ type: AUTH_ACTIONS.LOGOUT });
     }
   };
 
-  // Clear error function
   const clearError = () => {
     dispatch({ type: AUTH_ACTIONS.CLEAR_ERROR });
   };
 
-  // Helper functions
   const isLibrarian = () => {
     return state.user?.role === 'librarian' || state.user?.role === 'admin';
   };
@@ -191,22 +179,18 @@ export const AuthProvider = ({ children }) => {
     return state.user?.role === 'admin';
   };
 
-  // Context value
   const value = {
-    // State
     user: state.user,
     token: state.token,
     isAuthenticated: state.isAuthenticated,
     isLoading: state.isLoading,
     error: state.error,
     
-    // Actions
     login,
     register,
     logout,
     clearError,
     
-    // Helpers
     isLibrarian,
     isAdmin,
   };
@@ -218,7 +202,6 @@ export const AuthProvider = ({ children }) => {
   );
 };
 
-// Custom hook to use auth context
 export const useAuth = () => {
   const context = useContext(AuthContext);
   

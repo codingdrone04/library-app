@@ -2,12 +2,10 @@ const express = require('express');
 const jwt = require('jsonwebtoken');
 const router = express.Router();
 
-// POST /api/auth/login
 router.post('/login', async (req, res) => {
   try {
     const { username, password } = req.body;
 
-    // Validation basique
     if (!username || !password) {
       return res.status(400).json({
         success: false,
@@ -15,10 +13,8 @@ router.post('/login', async (req, res) => {
       });
     }
 
-    // Récupérer le modèle User depuis la connexion
     const { User } = req.app.locals.models;
     
-    // Trouver l'utilisateur
     const user = await User.findByUsernameOrEmail(username);
     
     if (!user) {
@@ -28,7 +24,6 @@ router.post('/login', async (req, res) => {
       });
     }
 
-    // Vérifier le mot de passe
     const isValidPassword = await user.validatePassword(password);
     
     if (!isValidPassword) {
@@ -38,7 +33,6 @@ router.post('/login', async (req, res) => {
       });
     }
 
-    // Créer le token JWT
     const token = jwt.sign(
       { 
         userId: user.id, 
@@ -49,7 +43,6 @@ router.post('/login', async (req, res) => {
       { expiresIn: process.env.JWT_EXPIRES_IN || '24h' }
     );
 
-    // Mettre à jour la dernière connexion
     user.last_login = new Date();
     await user.save();
 
@@ -71,12 +64,10 @@ router.post('/login', async (req, res) => {
   }
 });
 
-// POST /api/auth/register
 router.post('/register', async (req, res) => {
   try {
     const { firstname, lastname, username, email, password, role = 'user' } = req.body;
 
-    // Validation basique
     if (!firstname || !lastname || !username || !email || !password) {
       return res.status(400).json({
         success: false,
@@ -86,7 +77,6 @@ router.post('/register', async (req, res) => {
 
     const { User } = req.app.locals.models;
 
-    // Vérifier si l'utilisateur existe déjà
     const existingUser = await User.findByUsernameOrEmail(username) || 
                          await User.findByUsernameOrEmail(email);
     
@@ -97,7 +87,6 @@ router.post('/register', async (req, res) => {
       });
     }
 
-    // Créer l'utilisateur
     const newUser = await User.create({
       firstname,
       lastname,
@@ -107,7 +96,6 @@ router.post('/register', async (req, res) => {
       role: ['user', 'librarian', 'admin'].includes(role) ? role : 'user'
     });
 
-    // Créer le token JWT
     const token = jwt.sign(
       { 
         userId: newUser.id, 
@@ -145,7 +133,6 @@ router.post('/register', async (req, res) => {
   }
 });
 
-// GET /api/auth/me (pour vérifier le token)
 router.get('/me', async (req, res) => {
   try {
     const token = req.headers.authorization?.replace('Bearer ', '');

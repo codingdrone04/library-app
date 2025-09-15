@@ -43,7 +43,6 @@ const ProfileScreen = ({ navigation }) => {
 
   const handleNotificationToggle = (value) => {
     setNotificationsEnabled(value);
-    // TODO: Appel API pour sauvegarder la préférence
     Alert.alert(
       'Paramètres mis à jour',
       `Notifications ${value ? 'activées' : 'désactivées'}`
@@ -136,7 +135,6 @@ const ProfileScreen = ({ navigation }) => {
   };
 
   const renderStatsSection = () => {
-    // TODO: Remplacer par vraies stats depuis l'API
     const stats = [
       { label: 'Livres empruntés', value: '12', icon: 'book' },
       { label: 'Livres lus', value: '8', icon: 'checkmark-circle' },

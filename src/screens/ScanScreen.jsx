@@ -58,7 +58,6 @@ const ScanScreen = () => {
           </View>
         </View>
 
-        {/* Version alternative : Recherche manuelle */}
         <View style={styles.alternativeContainer}>
           <Text style={styles.alternativeTitle}>En attendant :</Text>
           <TouchableOpacity 

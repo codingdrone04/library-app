@@ -11,7 +11,6 @@ describe('Error Handler Middleware', () => {
     };
     mockNext = jest.fn();
     
-    // Mock console.error pour éviter le bruit dans les tests
     jest.spyOn(console, 'error').mockImplementation(() => {});
   });
 
@@ -35,7 +34,7 @@ describe('Error Handler Middleware', () => {
     
     errorHandler(error, mockReq, mockRes, mockNext);
     
-    expect(mockRes.status).toHaveBeenCalledWith(500); // Le middleware actuel retourne toujours 500
+    expect(mockRes.status).toHaveBeenCalledWith(500);
     expect(mockRes.json).toHaveBeenCalledWith({ error: 'Server Error' });
   });
 });

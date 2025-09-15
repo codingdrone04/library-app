@@ -3,9 +3,7 @@ const router = express.Router();
 const Book = require('../models/Book');
 const googleBooksService = require('../services/googleBooksService');
 
-// ===== ROUTES PUBLIQUES (lecture) =====
 
-// GET /api/books - Obtenir tous les livres avec filtres
 router.get('/', async (req, res) => {
   try {
     const {
@@ -19,20 +17,16 @@ router.get('/', async (req, res) => {
       sortOrder = 'asc'
     } = req.query;
 
-    // Construction de la requête
     let query = {};
     
-    // Filtres
     if (status) query.status = status;
     if (category) query.categories = { $in: [category] };
     if (author) query.authors = { $regex: author, $options: 'i' };
     
-    // Recherche textuelle
     let books;
     if (search) {
       books = await Book.searchBooks(search, query);
     } else {
-      // Tri
       const sortOptions = {};
       sortOptions[sortBy] = sortOrder === 'desc' ? -1 : 1;
       
@@ -43,7 +37,6 @@ router.get('/', async (req, res) => {
         .exec();
     }
 
-    // Compter le total pour la pagination
     const total = await Book.countDocuments(query);
 
     res.json({
@@ -68,7 +61,6 @@ router.get('/', async (req, res) => {
   }
 });
 
-// GET /api/books/popular - Livres populaires
 router.get('/popular', async (req, res) => {
   try {
     const { limit = 10 } = req.query;
@@ -90,7 +82,6 @@ router.get('/popular', async (req, res) => {
   }
 });
 
-// GET /api/books/recent - Livres récents
 router.get('/recent', async (req, res) => {
   try {
     const { limit = 10 } = req.query;
@@ -112,7 +103,6 @@ router.get('/recent', async (req, res) => {
   }
 });
 
-// GET /api/books/search/suggestions - Suggestions d'autocomplétion
 router.get('/search/suggestions', async (req, res) => {
   try {
     const { q } = req.query;
@@ -125,10 +115,8 @@ router.get('/search/suggestions', async (req, res) => {
       });
     }
 
-    // Recherche dans notre DB d'abord
     const localBooks = await Book.searchBooks(q, {}).limit(3);
     
-    // Puis suggestions Google Books
     const googleSuggestions = await googleBooksService.getSearchSuggestions(q, 3);
     
     res.json({
@@ -157,7 +145,6 @@ router.get('/search/suggestions', async (req, res) => {
   }
 });
 
-// GET /api/books/stats - Statistiques de la bibliothèque
 router.get('/stats', async (req, res) => {
   try {
     const stats = await Promise.all([
@@ -191,7 +178,6 @@ router.get('/stats', async (req, res) => {
   }
 });
 
-// GET /api/books/:id - Obtenir un livre par ID
 router.get('/:id', async (req, res) => {
   try {
     const book = await Book.findById(req.params.id);
@@ -203,7 +189,6 @@ router.get('/:id', async (req, res) => {
       });
     }
 
-    // Obtenir des livres similaires
     const similarBooks = await googleBooksService.findSimilarBooks(book, 3);
 
     res.json({
@@ -223,10 +208,7 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-// ===== ROUTES ADMINISTRATEUR (écriture) =====
-// TODO: Ajouter middleware d'authentification
 
-// POST /api/books - Ajouter un nouveau livre
 router.post('/', async (req, res) => {
   try {
     const {
@@ -237,10 +219,9 @@ router.post('/', async (req, res) => {
       condition = 'good',
       price,
       notes,
-      librarian = 'admin' // TODO: Récupérer depuis le token JWT
+      librarian = 'admin'
     } = req.body;
 
-    // Validation de base
     if (!title) {
       return res.status(400).json({
         success: false,
@@ -255,7 +236,6 @@ router.post('/', async (req, res) => {
       });
     }
 
-    // Vérifier si le livre existe déjà (par ISBN)
     if (isbn) {
       const existingBook = await Book.findByISBN(isbn);
       if (existingBook) {
@@ -267,7 +247,6 @@ router.post('/', async (req, res) => {
       }
     }
 
-    // Données de base du livre
     let bookData = {
       title: title.trim(),
       authors: Array.isArray(authors) ? authors : [authors || 'Auteur inconnu'],
@@ -280,17 +259,14 @@ router.post('/', async (req, res) => {
       }
     };
 
-    // Enrichissement avec Google Books
     let enrichedData = null;
     
     try {
       console.log('🔍 Tentative d\'enrichissement avec Google Books...');
       
       if (isbn) {
-        // Recherche par ISBN
         enrichedData = await googleBooksService.searchByISBN(isbn);
       } else if (title && authors) {
-        // Recherche par titre + auteur
         const searchQuery = `${title} ${Array.isArray(authors) ? authors[0] : authors}`;
         const results = await googleBooksService.searchBooks(searchQuery, 1);
         if (results.length > 0) {
@@ -301,11 +277,9 @@ router.post('/', async (req, res) => {
       if (enrichedData) {
         console.log('✅ Livre enrichi avec Google Books');
         
-        // Fusionner les données
         bookData = {
           ...bookData,
           ...enrichedData,
-          // Garder les données locales prioritaires
           library: bookData.library,
           status: 'available'
         };
@@ -317,7 +291,6 @@ router.post('/', async (req, res) => {
       console.warn('⚠️ Erreur enrichissement (continuons sans):', enrichError.message);
     }
 
-    // Créer le livre
     const book = new Book(bookData);
     await book.save();
 
@@ -348,7 +321,6 @@ router.post('/', async (req, res) => {
   }
 });
 
-// PUT /api/books/:id - Modifier un livre
 router.put('/:id', async (req, res) => {
   try {
     const book = await Book.findById(req.params.id);
@@ -360,7 +332,6 @@ router.put('/:id', async (req, res) => {
       });
     }
 
-    // Mettre à jour les champs autorisés
     const allowedUpdates = [
       'title', 'subtitle', 'authors', 'description', 'categories', 
       'genre', 'publisher', 'publishedDate', 'pageCount', 'cover',
@@ -372,7 +343,6 @@ router.put('/:id', async (req, res) => {
     allowedUpdates.forEach(field => {
       if (req.body[field] !== undefined) {
         if (field.includes('.')) {
-          // Gestion des champs imbriqués (library.*)
           const [parent, child] = field.split('.');
           if (!updates[parent]) updates[parent] = {};
           updates[parent][child] = req.body[field];
@@ -382,7 +352,6 @@ router.put('/:id', async (req, res) => {
       }
     });
 
-    // Appliquer les mises à jour
     Object.assign(book, updates);
     
     if (updates.library) {
@@ -408,7 +377,6 @@ router.put('/:id', async (req, res) => {
   }
 });
 
-// DELETE /api/books/:id - Supprimer un livre
 router.delete('/:id', async (req, res) => {
   try {
     const book = await Book.findById(req.params.id);
@@ -420,7 +388,6 @@ router.delete('/:id', async (req, res) => {
       });
     }
 
-    // Vérifier que le livre n'est pas emprunté
     if (book.status === 'borrowed') {
       return res.status(400).json({
         success: false,
@@ -446,7 +413,6 @@ router.delete('/:id', async (req, res) => {
   }
 });
 
-// POST /api/books/:id/enrich - Re-enrichir un livre avec Google Books
 router.post('/:id/enrich', async (req, res) => {
   try {
     const book = await Book.findById(req.params.id);
@@ -458,7 +424,6 @@ router.post('/:id/enrich', async (req, res) => {
       });
     }
 
-    // Tentative d'enrichissement
     let enrichedData = null;
     
     if (book.isbn) {
@@ -472,7 +437,6 @@ router.post('/:id/enrich', async (req, res) => {
     }
 
     if (enrichedData) {
-      // Fusionner sans écraser les données locales importantes
       Object.assign(book, {
         subtitle: enrichedData.subtitle || book.subtitle,
         description: enrichedData.description || book.description,

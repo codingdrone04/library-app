@@ -150,7 +150,7 @@ const BookListScreen = ({ navigation }) => {
         )}
       </View>
   
-      {/* Search Bar - SIMPLIFIÉ */}
+      {/* Search Bar */}
       <SearchBar
         value={searchTerm}
         onChangeText={handleSearch}
@@ -158,7 +158,7 @@ const BookListScreen = ({ navigation }) => {
         loading={searchLoading}
       />
   
-      {/* Bouton de test API */}
+      {/* Bouton test API */}
       <TouchableOpacity 
         style={styles.testButton}
         onPress={testAPIConnection}
@@ -169,7 +169,6 @@ const BookListScreen = ({ navigation }) => {
     </View>
   );
 
-  // ✅ RENDER FUNCTIONS ULTRA-SIMPLIFIÉES
   const renderPopularBook = ({ item }) => (
     <BookCard 
       book={item}
@@ -194,7 +193,6 @@ const BookListScreen = ({ navigation }) => {
     />
   );
 
-  // Affichage d'erreur
   if (error && !isLoading) {
     return (
       <View style={globalStyles.container}>
