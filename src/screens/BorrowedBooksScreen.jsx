@@ -6,7 +6,8 @@ import {
   TouchableOpacity, 
   StyleSheet,
   RefreshControl,
-  Alert 
+  Alert,
+  Linking
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../context/AuthContext';
@@ -27,7 +28,6 @@ const BorrowedBooksScreen = ({ navigation }) => {
 
   const loadBorrowedBooks = async () => {
     try {
-      
       if (!user?.id) {
         console.warn('⚠️ Pas d\'ID utilisateur');
         setBorrowedBooks([]);
@@ -73,7 +73,7 @@ const BorrowedBooksScreen = ({ navigation }) => {
     if (book.status === 'overdue' || diffDays < 0) {
       return {
         statusInfo: {
-          text: `En retard de ${Math.abs(diffDays)} jour(s)`,
+          text: `⚠️ En retard de ${Math.abs(diffDays)} jour(s)`,
           color: COLORS.error,
           icon: 'warning',
           isOverdue: true,
@@ -83,7 +83,7 @@ const BorrowedBooksScreen = ({ navigation }) => {
     } else if (diffDays <= 3) {
       return {
         statusInfo: {
-          text: `À rendre dans ${diffDays} jour(s)`,
+          text: `⏰ À rendre dans ${diffDays} jour(s)`,
           color: COLORS.warning,
           icon: 'time',
           isOverdue: false,
@@ -93,9 +93,9 @@ const BorrowedBooksScreen = ({ navigation }) => {
     } else {
       return {
         statusInfo: {
-          text: `À rendre le ${formatDate(book.returnDate)}`,
+          text: `📅 À rendre le ${formatDate(book.returnDate)}`,
           color: COLORS.success,
-          icon: 'checkmark-circle',
+          icon: 'calendar',
           isOverdue: false,
           daysLeft: diffDays
         }
@@ -109,85 +109,39 @@ const BorrowedBooksScreen = ({ navigation }) => {
     setIsRefreshing(false);
   };
 
-  const handleRenewBook = async (bookId) => {
-    const book = borrowedBooks.find(b => b.id === bookId);
-    
-    if (!book) {
-      Alert.alert('Erreur', 'Livre non trouvé');
-      return;
-    }
-    
-    if (book.renewalCount >= book.maxRenewals) {
-      Alert.alert(
-        'Renouvellement impossible', 
-        'Vous avez atteint le nombre maximum de renouvellements pour ce livre.'
-      );
-      return;
-    }
-
+  const handleRequestRenewal = async (book) => {
     Alert.alert(
-      '🔄 Renouveler l\'emprunt',
-      `Voulez-vous renouveler l'emprunt de "${book.title}" ?`,
+      '🔄 Demande de renouvellement',
+      `Demander le renouvellement de "${book.title}" ?\n\n⚠️ Cette demande sera envoyée au bibliothécaire pour validation.`,
       [
         { text: 'Annuler', style: 'cancel' },
         { 
-          text: 'Renouveler', 
-          onPress: async () => {
-            try {
-              const updatedBooks = borrowedBooks.map(b => {
-                if (b.id === bookId) {
-                  const newReturnDate = new Date();
-                  newReturnDate.setDate(newReturnDate.getDate() + 14);
-                  return {
-                    ...b,
-                    renewalCount: b.renewalCount + 1,
-                    returnDate: newReturnDate.toISOString(),
-                    status: 'borrowed',
-                    ...calculateBookStatus({
-                      ...b,
-                      returnDate: newReturnDate.toISOString()
-                    })
-                  };
-                }
-                return b;
-              });
-              setBorrowedBooks(updatedBooks);
-              Alert.alert('🎉 Succès', 'Emprunt renouvelé avec succès !');
-            } catch (error) {
-              console.error('Erreur renouvellement:', error);
-              Alert.alert('❌ Erreur', 'Impossible de renouveler cet emprunt');
-            }
+          text: 'Demander', 
+          onPress: () => {
+            Alert.alert(
+              '📨 Demande envoyée !',
+              `Votre demande de renouvellement pour "${book.title}" a été envoyée au bibliothécaire.\n\nVous recevrez une notification de sa réponse.`,
+              [{ text: 'OK' }]
+            );
           }
         }
       ]
     );
   };
 
-  const handleReturnBook = async (bookId) => {
-    const book = borrowedBooks.find(b => b.id === bookId);
-    
-    if (!book) {
-      Alert.alert('Erreur', 'Livre non trouvé');
-      return;
-    }
-
+  const handleContactLibrarian = () => {
     Alert.alert(
-      '📚 Retourner le livre',
-      `Voulez-vous retourner "${book.title}" ?`,
+      '📞 Contacter la bibliothèque',
+      'Comment souhaitez-vous contacter la bibliothèque ?',
       [
         { text: 'Annuler', style: 'cancel' },
         { 
-          text: 'Retourner', 
-          onPress: async () => {
-            try {
-              await api.returnBook(bookId, user.id);
-              setBorrowedBooks(prev => prev.filter(b => b.id !== bookId));
-              Alert.alert('🎉 Succès', 'Livre retourné avec succès !');
-            } catch (error) {
-              console.error('Erreur retour:', error);
-              Alert.alert('❌ Erreur', error.message || 'Impossible de retourner ce livre');
-            }
-          }
+          text: '📧 Email', 
+          onPress: () => Linking.openURL('mailto:bibliotheque@example.com?subject=Question%20emprunts')
+        },
+        { 
+          text: '📞 Téléphone', 
+          onPress: () => Linking.openURL('tel:+33123456789')
         }
       ]
     );
@@ -247,20 +201,29 @@ const BorrowedBooksScreen = ({ navigation }) => {
             <View style={styles.actionButtons}>
               {canRenew && (
                 <TouchableOpacity 
-                  style={[styles.actionButton, styles.renewButton]}
-                  onPress={() => handleRenewBook(item.id)}
+                  style={[styles.actionButton, styles.renewRequestButton]}
+                  onPress={() => handleRequestRenewal(item)}
                 >
-                  <Ionicons name="refresh" size={16} color={COLORS.primary} />
-                  <Text style={styles.renewButtonText}>Renouveler</Text>
+                  <Ionicons name="mail" size={16} color={COLORS.info} />
+                  <Text style={styles.renewRequestButtonText}>Demander renouvellement</Text>
                 </TouchableOpacity>
               )}
               
               <TouchableOpacity 
-                style={[styles.actionButton, styles.returnButton]}
-                onPress={() => handleReturnBook(item.id)}
+                style={[styles.actionButton, styles.infoButton]}
+                onPress={() => {
+                  Alert.alert(
+                    '📚 Pour retourner ce livre',
+                    `"${item.title}"\n\n📍 Rendez-vous à la bibliothèque avec le livre physique.\n\n⏰ Date limite: ${formatDate(item.returnDate)}`,
+                    [
+                      { text: 'OK' },
+                      { text: '📞 Contacter', onPress: handleContactLibrarian }
+                    ]
+                  );
+                }}
               >
-                <Ionicons name="checkmark" size={16} color={COLORS.success} />
-                <Text style={styles.returnButtonText}>Retourner</Text>
+                <Ionicons name="information-circle" size={16} color={COLORS.primary} />
+                <Text style={styles.infoButtonText}>Infos retour</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -277,26 +240,35 @@ const BorrowedBooksScreen = ({ navigation }) => {
       </Text>
       
       {borrowedBooks.length > 0 && (
-        <View style={styles.statsContainer}>
-          <View style={styles.statItem}>
-            <Text style={styles.statNumber}>
-              {borrowedBooks.filter(b => b.statusInfo?.isOverdue).length}
-            </Text>
-            <Text style={styles.statLabel}>En retard</Text>
+        <>
+          <View style={styles.statsContainer}>
+            <View style={styles.statItem}>
+              <Text style={[styles.statNumber, { color: COLORS.error }]}>
+                {borrowedBooks.filter(b => b.statusInfo?.isOverdue).length}
+              </Text>
+              <Text style={styles.statLabel}>En retard</Text>
+            </View>
+            <View style={styles.statItem}>
+              <Text style={[styles.statNumber, { color: COLORS.warning }]}>
+                {borrowedBooks.filter(b => b.statusInfo?.daysLeft <= 3 && !b.statusInfo?.isOverdue).length}
+              </Text>
+              <Text style={styles.statLabel}>À rendre bientôt</Text>
+            </View>
+            <View style={styles.statItem}>
+              <Text style={[styles.statNumber, { color: COLORS.primary }]}>
+                {borrowedBooks.reduce((acc, book) => acc + book.renewalCount, 0)}
+              </Text>
+              <Text style={styles.statLabel}>Renouvellements</Text>
+            </View>
           </View>
-          <View style={styles.statItem}>
-            <Text style={styles.statNumber}>
-              {borrowedBooks.filter(b => b.statusInfo?.daysLeft <= 3 && !b.statusInfo?.isOverdue).length}
+
+          <View style={styles.reminderContainer}>
+            <Ionicons name="information-circle" size={20} color={COLORS.info} />
+            <Text style={styles.reminderText}>
+              💡 Pour retourner ou renouveler un livre, rendez-vous à la bibliothèque
             </Text>
-            <Text style={styles.statLabel}>À rendre bientôt</Text>
           </View>
-          <View style={styles.statItem}>
-            <Text style={styles.statNumber}>
-              {borrowedBooks.reduce((acc, book) => acc + book.renewalCount, 0)}
-            </Text>
-            <Text style={styles.statLabel}>Renouvellements</Text>
-          </View>
-        </View>
+        </>
       )}
     </View>
   );
@@ -306,7 +278,7 @@ const BorrowedBooksScreen = ({ navigation }) => {
       <Ionicons name="library-outline" size={100} color={COLORS.textMuted} />
       <Text style={styles.emptyTitle}>Aucun livre emprunté</Text>
       <Text style={styles.emptySubtitle}>
-        Rendez-vous dans la bibliothèque pour emprunter vos premiers livres !
+        Rendez-vous à la bibliothèque pour emprunter vos premiers livres !
       </Text>
       <TouchableOpacity 
         style={[globalStyles.primaryButton, styles.exploreButton]}
@@ -314,8 +286,16 @@ const BorrowedBooksScreen = ({ navigation }) => {
       >
         <Ionicons name="search" size={20} color={COLORS.textPrimary} />
         <Text style={[globalStyles.primaryButtonText, { marginLeft: SPACING.sm }]}>
-          Explorer la bibliothèque
+          Explorer le catalogue
         </Text>
+      </TouchableOpacity>
+      
+      <TouchableOpacity 
+        style={styles.contactButton}
+        onPress={handleContactLibrarian}
+      >
+        <Ionicons name="call" size={20} color={COLORS.info} />
+        <Text style={styles.contactButtonText}>Contacter la bibliothèque</Text>
       </TouchableOpacity>
     </View>
   );
@@ -386,7 +366,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.surface,
     borderRadius: SPACING.cardRadius,
     padding: SPACING.md,
-    marginBottom: SPACING.lg,
+    marginBottom: SPACING.md,
   },
   statItem: {
     alignItems: 'center',
@@ -394,12 +374,28 @@ const styles = StyleSheet.create({
   statNumber: {
     ...globalStyles.title,
     fontSize: 24,
-    color: COLORS.accent,
     marginBottom: SPACING.xs,
   },
   statLabel: {
     ...globalStyles.caption,
     textAlign: 'center',
+  },
+
+  reminderContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: COLORS.info + '20',
+    borderRadius: SPACING.cardRadius,
+    padding: SPACING.md,
+    marginBottom: SPACING.lg,
+    borderLeftWidth: 4,
+    borderLeftColor: COLORS.info,
+  },
+  reminderText: {
+    ...globalStyles.body,
+    marginLeft: SPACING.sm,
+    flex: 1,
+    lineHeight: 18,
   },
 
   bookContainer: {
@@ -450,6 +446,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    flexWrap: 'wrap',
   },
   alertBadge: {
     flexDirection: 'row',
@@ -458,6 +455,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: SPACING.sm,
     paddingVertical: SPACING.xs,
     borderRadius: 16,
+    marginBottom: SPACING.sm,
   },
   alertText: {
     color: COLORS.error,
@@ -469,6 +467,7 @@ const styles = StyleSheet.create({
   actionButtons: {
     flexDirection: 'row',
     alignItems: 'center',
+    flexWrap: 'wrap',
   },
   actionButton: {
     flexDirection: 'row',
@@ -477,21 +476,22 @@ const styles = StyleSheet.create({
     paddingVertical: SPACING.sm,
     borderRadius: 20,
     marginLeft: SPACING.sm,
+    marginBottom: SPACING.xs,
   },
-  renewButton: {
-    backgroundColor: COLORS.primary + '20',
+  renewRequestButton: {
+    backgroundColor: COLORS.info + '20',
   },
-  renewButtonText: {
-    color: COLORS.primary,
+  renewRequestButtonText: {
+    color: COLORS.info,
     fontSize: 12,
     fontWeight: '600',
     marginLeft: SPACING.xs,
   },
-  returnButton: {
-    backgroundColor: COLORS.success + '20',
+  infoButton: {
+    backgroundColor: COLORS.primary + '20',
   },
-  returnButtonText: {
-    color: COLORS.success,
+  infoButtonText: {
+    color: COLORS.primary,
     fontSize: 12,
     fontWeight: '600',
     marginLeft: SPACING.xs,
@@ -518,6 +518,21 @@ const styles = StyleSheet.create({
   exploreButton: {
     flexDirection: 'row',
     alignItems: 'center',
+    marginBottom: SPACING.md,
+  },
+  contactButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: COLORS.info + '20',
+    paddingHorizontal: SPACING.lg,
+    paddingVertical: SPACING.md,
+    borderRadius: SPACING.cardRadius,
+  },
+  contactButtonText: {
+    color: COLORS.info,
+    fontSize: 16,
+    fontWeight: '600',
+    marginLeft: SPACING.sm,
   },
 });
 

@@ -157,15 +157,6 @@ const BookListScreen = ({ navigation }) => {
         placeholder="Rechercher un livre..."
         loading={searchLoading}
       />
-  
-      {/* Bouton test API */}
-      <TouchableOpacity 
-        style={styles.testButton}
-        onPress={testAPIConnection}
-      >
-        <Ionicons name="refresh" size={16} color="white" />
-        <Text style={styles.testButtonText}>🔍 Tester API & Recharger</Text>
-      </TouchableOpacity>
     </View>
   );
 

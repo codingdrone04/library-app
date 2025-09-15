@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  View, 
-  Text, 
-  StyleSheet, 
-  Image, 
-  ScrollView, 
-  TouchableOpacity, 
+import {
+  View,
+  Text,
+  StyleSheet,
+  Image,
+  ScrollView,
+  TouchableOpacity,
   FlatList,
   Alert,
   ActivityIndicator
@@ -28,7 +28,7 @@ const BookDetailScreen = ({ route, navigation }) => {
 
   const getBookData = (book) => {
     if (!book) return {};
-    
+
     return {
       title: book.title || 'Titre non disponible',
       author: book.authors?.[0] || book.author || 'Auteur inconnu',
@@ -72,7 +72,7 @@ const BookDetailScreen = ({ route, navigation }) => {
       setLoading(true);
       const allBooks = await api.getLibraryBooks();
       const foundBook = allBooks.find(b => (b._id || b.id) === bookId);
-      
+
       if (foundBook) {
         setBook(foundBook);
         loadRecommendations(foundBook);
@@ -95,8 +95,8 @@ const BookDetailScreen = ({ route, navigation }) => {
       const bookData = getBookData(currentBook);
       const searchQuery = bookData.genre || bookData.authors[0] || 'fiction';
       const recommendations = await googleBooksService.searchBooks(searchQuery, 6);
-      
-      const filtered = recommendations.filter(rec => 
+
+      const filtered = recommendations.filter(rec =>
         rec.googleBooksId !== bookData.googleBooksId
       );
       setRecommendedBooks(filtered.slice(0, 3));
@@ -119,13 +119,13 @@ const BookDetailScreen = ({ route, navigation }) => {
       `Voulez-vous emprunter "${bookData.title}" ?\n\n⚠️ Fonction de test - en réalité l'emprunt se fait physiquement à la bibliothèque.`,
       [
         { text: 'Annuler', style: 'cancel' },
-        { 
-          text: 'Emprunter', 
+        {
+          text: 'Emprunter',
           onPress: async () => {
             setIsBorrowing(true);
             try {
               await api.borrowBook(bookData.id, user.id);
-              
+
               setBook(prev => ({
                 ...prev,
                 status: 'borrowed',
@@ -133,7 +133,7 @@ const BookDetailScreen = ({ route, navigation }) => {
                 borrowDate: new Date().toISOString(),
                 returnDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString()
               }));
-              
+
               Alert.alert(
                 'Emprunt confirmé ! 📚',
                 `"${bookData.title}" a été ajouté à vos livres empruntés.\n\nÀ rendre dans 14 jours.`,
@@ -159,13 +159,13 @@ const BookDetailScreen = ({ route, navigation }) => {
       `Voulez-vous retourner "${bookData.title}" ?`,
       [
         { text: 'Annuler', style: 'cancel' },
-        { 
-          text: 'Retourner', 
+        {
+          text: 'Retourner',
           onPress: async () => {
             setIsReturning(true);
             try {
               await api.returnBook(bookData.id, user.id);
-              
+
               setBook(prev => ({
                 ...prev,
                 status: 'available',
@@ -173,7 +173,7 @@ const BookDetailScreen = ({ route, navigation }) => {
                 borrowDate: null,
                 returnDate: null
               }));
-              
+
               Alert.alert('Livre retourné ! ✅', `"${bookData.title}" a été retourné avec succès.`);
             } catch (error) {
               Alert.alert('Erreur', error.message || 'Impossible de retourner ce livre');
@@ -232,7 +232,7 @@ const BookDetailScreen = ({ route, navigation }) => {
   };
 
   const renderRecommendedBook = ({ item }) => (
-    <TouchableOpacity 
+    <TouchableOpacity
       style={styles.recommendedBookCard}
       onPress={() => {
         Alert.alert(
@@ -240,8 +240,8 @@ const BookDetailScreen = ({ route, navigation }) => {
           `"${item.title}" n'est pas dans notre bibliothèque.\n\nVoulez-vous voir plus d'infos sur Google Books ?`,
           [
             { text: 'Non', style: 'cancel' },
-            { 
-              text: 'Oui', 
+            {
+              text: 'Oui',
               onPress: () => {
                 console.log('Ouvrir:', item.previewLink);
               }
@@ -251,8 +251,8 @@ const BookDetailScreen = ({ route, navigation }) => {
       }}
     >
       {item.cover ? (
-        <Image 
-          source={{ uri: item.cover }} 
+        <Image
+          source={{ uri: item.cover }}
           style={styles.recommendedBookImage}
           resizeMode="cover"
         />
@@ -295,8 +295,8 @@ const BookDetailScreen = ({ route, navigation }) => {
         {/* Cover Image */}
         <View style={styles.coverContainer}>
           {bookData.cover ? (
-            <Image 
-              source={{ uri: bookData.cover }} 
+            <Image
+              source={{ uri: bookData.cover }}
               style={styles.cover}
               resizeMode="cover"
             />
@@ -327,7 +327,7 @@ const BookDetailScreen = ({ route, navigation }) => {
             <Ionicons name="library" size={16} color={COLORS.textMuted} />
             <Text style={styles.metaText}>{bookData.genre}</Text>
           </View>
-          
+
           {bookData.publishedDate && (
             <View style={styles.metaRow}>
               <Ionicons name="calendar" size={16} color={COLORS.textMuted} />
@@ -336,14 +336,14 @@ const BookDetailScreen = ({ route, navigation }) => {
               </Text>
             </View>
           )}
-          
+
           {bookData.pageCount && (
             <View style={styles.metaRow}>
               <Ionicons name="document-text" size={16} color={COLORS.textMuted} />
               <Text style={styles.metaText}>{bookData.pageCount} pages</Text>
             </View>
           )}
-          
+
           <View style={styles.metaRow}>
             <Ionicons name="location" size={16} color={COLORS.textMuted} />
             <Text style={styles.metaText}>📍 {bookData.location}</Text>
@@ -394,51 +394,31 @@ const BookDetailScreen = ({ route, navigation }) => {
         )}
       </ScrollView>
 
-      {/* Action Button */}
+
       <View style={styles.actionContainer}>
         {bookData.status === 'available' && (
-          <TouchableOpacity 
-            style={[globalStyles.primaryButton, isBorrowing && styles.buttonDisabled]}
-            onPress={handleBorrow}
-            disabled={isBorrowing}
-          >
-            {isBorrowing ? (
-              <ActivityIndicator color={COLORS.textPrimary} />
-            ) : (
-              <>
-                <Ionicons name="add-circle" size={20} color={COLORS.textPrimary} />
-                <Text style={[globalStyles.primaryButtonText, { marginLeft: SPACING.sm }]}>
-                  Emprunter
-                </Text>
-              </>
-            )}
-          </TouchableOpacity>
+          <View style={styles.infoButton}>
+            <Ionicons name="information-circle" size={20} color={COLORS.info} />
+            <Text style={[styles.infoButtonText, { marginLeft: SPACING.sm }]}>
+              Pour emprunter ce livre, rendez-vous à la bibliothèque
+            </Text>
+          </View>
         )}
 
         {bookData.status === 'borrowed' && bookData.borrowedBy === user?.id && (
-          <TouchableOpacity 
-            style={[styles.returnButton, isReturning && styles.buttonDisabled]}
-            onPress={handleReturn}
-            disabled={isReturning}
-          >
-            {isReturning ? (
-              <ActivityIndicator color={COLORS.textPrimary} />
-            ) : (
-              <>
-                <Ionicons name="checkmark-circle" size={20} color={COLORS.textPrimary} />
-                <Text style={[styles.returnButtonText, { marginLeft: SPACING.sm }]}>
-                  Retourner
-                </Text>
-              </>
-            )}
-          </TouchableOpacity>
+          <View style={styles.infoButton}>
+            <Ionicons name="library" size={20} color={COLORS.warning} />
+            <Text style={[styles.infoButtonText, { marginLeft: SPACING.sm }]}>
+              Livre en votre possession - À retourner physiquement
+            </Text>
+          </View>
         )}
 
         {bookData.status === 'borrowed' && bookData.borrowedBy !== user?.id && (
           <View style={styles.unavailableButton}>
             <Ionicons name="time" size={20} color={COLORS.warning} />
             <Text style={[styles.unavailableButtonText, { marginLeft: SPACING.sm }]}>
-              Emprunté par un autre utilisateur
+              Livre emprunté par un autre utilisateur
             </Text>
           </View>
         )}

@@ -216,7 +216,7 @@ const ProfileScreen = ({ navigation }) => {
         onPress: () => Alert.alert('Aide', 'Contactez-nous à support@library.com') 
       },
     ];
-
+  
     return (
       <View style={styles.actionsSection}>
         <Text style={styles.sectionTitle}>Actions</Text>
@@ -231,6 +231,17 @@ const ProfileScreen = ({ navigation }) => {
             <Ionicons name="chevron-forward" size={20} color={COLORS.textMuted} />
           </TouchableOpacity>
         ))}
+        
+        {isLibrarian() && (
+          <TouchableOpacity 
+            style={styles.actionItem}
+            onPress={() => navigation.navigate('AdminScreen')}
+          >
+            <Ionicons name="library" size={20} color={COLORS.textSecondary} />
+            <Text style={styles.actionTitle}>Gestion bibliothèque</Text>
+            <Ionicons name="chevron-forward" size={20} color={COLORS.textMuted} />
+          </TouchableOpacity>
+        )}
       </View>
     );
   };

@@ -36,7 +36,7 @@ if (process.env.NODE_ENV === 'development') {
   app.use(morgan('combined'));
 }
 
-// Body parsing
+// ✅ Body parsing EN PREMIER
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
@@ -55,6 +55,12 @@ app.use('/api/auth', authRoutes);
 app.use('/api/books', bookRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/loans', loanRoutes);
+
+// ✅ Routes dev APRÈS le body parsing
+if (process.env.NODE_ENV === 'development') {
+  const devRoutes = require('./routes/dev');
+  app.use('/api/dev', devRoutes);
+}
 
 // Route par défaut
 app.get('/', (req, res) => {

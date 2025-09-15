@@ -12,6 +12,7 @@ import BookDetailScreen from '../screens/BookDetailScreen';
 import BorrowedBooksScreen from '../screens/BorrowedBooksScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import ScanScreen from '../screens/ScanScreen';
+import AdminScreen from '../screens/AdminScreen';
 
 // Context
 import { useAuth } from '../context/AuthContext';
@@ -111,7 +112,6 @@ const MainTabNavigator = () => {
   );
 };
 
-// Main App Stack (avec navigation vers détails)
 const AppStack = () => (
   <Stack.Navigator
     screenOptions={{
@@ -122,10 +122,10 @@ const AppStack = () => (
   >
     <Stack.Screen name="MainTabs" component={MainTabNavigator} />
     <Stack.Screen name={ROUTES.BOOK_DETAIL} component={BookDetailScreen} />
+    <Stack.Screen name="AdminScreen" component={AdminScreen} />
   </Stack.Navigator>
 );
 
-// Placeholder component pour les écrans pas encore créés
 const PlaceholderScreen = ({ title }) => (
   <View style={{ 
     flex: 1, 
@@ -154,7 +154,6 @@ const PlaceholderScreen = ({ title }) => (
   </View>
 );
 
-// Main App Navigator
 const AppNavigator = () => {
   const { isAuthenticated, isLoading } = useAuth();
 

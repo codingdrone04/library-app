@@ -2,6 +2,7 @@ const app = require('./app');
 const connectMongoDB = require('./config/mongodb');
 const connectPostgreSQL = require('./config/postgresql');
 const createUserModel = require('./models/User');
+const createLoanModel = require('./models/Loan');
 
 const PORT = process.env.PORT || 3000;
 
@@ -19,8 +20,12 @@ async function startServer() {
     
     console.log('📊 Initialisation des modèles...');
     const User = createUserModel(sequelize);
+    const Loan = createLoanModel(sequelize);
+
+    User.hasMany(Loan, { foreignKey: 'user_id', as: 'loans' });
+    Loan.belongsTo(User, { foreignKey: 'user_id', as: 'user' });
     
-    app.locals.models = { User };
+    app.locals.models = { User, Loan };
     
     await sequelize.sync({ alter: true });
     console.log('📋 Tables synchronisées !');
