@@ -58,14 +58,29 @@ const BookDetailScreen = ({ route, navigation }) => {
       headerTintColor: COLORS.textPrimary,
       headerTitle: '',
       headerBackTitleVisible: false,
+      headerRight: () => (
+        isLibrarian() && book ? (
+          <TouchableOpacity
+            onPress={() => navigation.navigate('EditBookScreen', { book })}
+            style={{
+              marginRight: 16,
+              backgroundColor: COLORS.accent + '20',
+              borderRadius: 20,
+              padding: 8
+            }}
+          >
+            <Ionicons name="create" size={20} color={COLORS.accent} />
+          </TouchableOpacity>
+        ) : null
+      ),
     });
-
+  
     if (!book && bookId) {
       loadBookDetails();
     } else if (book) {
       loadRecommendations();
     }
-  }, []);
+  }, [book, isLibrarian]);
 
   const loadBookDetails = async () => {
     try {
@@ -266,6 +281,42 @@ const BookDetailScreen = ({ route, navigation }) => {
     </TouchableOpacity>
   );
 
+  const renderLibrarianActions = () => {
+    if (!isLibrarian() || !book) return null;
+  
+    return (
+      <View style={styles.librarianSection}>
+        <Text style={styles.sectionTitle}>Actions bibliothécaire</Text>
+        <View style={styles.librarianButtons}>
+          <TouchableOpacity 
+            style={styles.librarianButton}
+            onPress={() => navigation.navigate('EditBookScreen', { book })}
+          >
+            <Ionicons name="create" size={20} color={COLORS.accent} />
+            <Text style={styles.librarianButtonText}>Modifier</Text>
+          </TouchableOpacity>
+          
+          <TouchableOpacity 
+            style={[styles.librarianButton, styles.enrichButton]}
+            onPress={() => {
+              Alert.alert(
+                'Enrichir le livre',
+                'Rechercher des informations supplémentaires sur Google Books ?',
+                [
+                  { text: 'Annuler', style: 'cancel' },
+                  { text: 'Enrichir', onPress: () => navigation.navigate('EditBookScreen', { book }) }
+                ]
+              );
+            }}
+          >
+            <Ionicons name="cloud-download" size={20} color={COLORS.info} />
+            <Text style={[styles.librarianButtonText, { color: COLORS.info }]}>Enrichir</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    );
+  };
+
   if (loading) {
     return (
       <View style={[globalStyles.container, globalStyles.centerContainer]}>
@@ -377,6 +428,8 @@ const BookDetailScreen = ({ route, navigation }) => {
             </View>
           </View>
         )}
+
+        {renderLibrarianActions()}
 
         {/* Recommendations */}
         {recommendedBooks.length > 0 && (
@@ -590,6 +643,35 @@ const styles = StyleSheet.create({
   },
   buttonDisabled: {
     opacity: 0.6,
+  },
+  librarianSection: {
+    marginHorizontal: SPACING.containerPadding,
+    marginBottom: SPACING.lg,
+  },
+  librarianButtons: {
+    flexDirection: 'row',
+    gap: SPACING.md,
+  },
+  librarianButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: COLORS.accent + '20',
+    borderRadius: SPACING.cardRadius,
+    paddingVertical: SPACING.md,
+    borderWidth: 1,
+    borderColor: COLORS.accent + '50',
+  },
+  enrichButton: {
+    backgroundColor: COLORS.info + '20',
+    borderColor: COLORS.info + '50',
+  },
+  librarianButtonText: {
+    color: COLORS.accent,
+    fontSize: 14,
+    fontWeight: '600',
+    marginLeft: SPACING.sm,
   },
 });
 
