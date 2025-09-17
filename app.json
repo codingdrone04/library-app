@@ -17,8 +17,14 @@
     "android": {
       "adaptiveIcon": {
         "backgroundColor": "#2A2A2A"
-      }
+      },
+      "package": "com.xenfroz.libraryapp"
     },
-    "web": {}
+    "web": {},
+    "extra": {
+      "eas": {
+        "projectId": "bebc54e0-5d01-4d49-838d-ddc35fc29af8"
+      }
+    }
   }
 }
