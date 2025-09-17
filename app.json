@@ -21,6 +21,17 @@
       "package": "com.xenfroz.libraryapp"
     },
     "web": {},
+    "plugins": [
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "useAndroidX": true,
+            "enableJetifier": true
+          }
+        }
+      ]
+    ],
     "extra": {
       "eas": {
         "projectId": "bebc54e0-5d01-4d49-838d-ddc35fc29af8"

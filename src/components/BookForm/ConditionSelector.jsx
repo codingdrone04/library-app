@@ -9,45 +9,48 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useAuth } from '../context/AuthContext';
-import api from '../services/api';
-import googleBooksService from '../services/googleBooksService';
-import BookFormSection from '../components/BookForm/BookFormSection';
-import FormInput from '../components/BookForm/FormInput';
-import ArrayInput from '../components/BookForm/ArrayInput';
-import EnrichmentModal from '../components/BookForm/EnrichmentModal';
-import ConditionSelector from '../components/BookForm/ConditionSelector';
-import SafeImage from '../components/SafeImage';
-import { COLORS, SPACING } from '../constants';
-import { globalStyles } from '../styles/globalStyles';
+import { useAuth } from '../../context/AuthContext';
+import api from '../../services/api';
+import googleBooksService from '../../services/googleBooksService';
+import BookFormSection from '../../components/BookForm/BookFormSection';
+import FormInput from '../../components/BookForm/FormInput';
+import ArrayInput from '../../components/BookForm/ArrayInput';
+import EnrichmentModal from '../../components/BookForm/EnrichmentModal';
+import ConditionSelector from '../../components/BookForm/ConditionSelector';
+import SafeImage from '../../components/SafeImage';
+import { COLORS, SPACING } from '../../constants';
+import { globalStyles } from '../../styles/globalStyles';
 
 const AddBookScreen = ({ navigation, route }) => {
   const { user, isLibrarian } = useAuth();
-  const [book, setBook] = useState({
-    title: '',
-    subtitle: '',
-    authors: [],
-    description: '',
-    publisher: '',
-    publishedDate: '',
-    pageCount: '',
-    cover: '',
-    categories: [],
-    genre: '',
-    language: 'fr',
-    location: '',
-    condition: 'good',
-    price: '',
-    notes: '',
-    identifiers: []
-  });
-
+  const [book, setBook] = useState(getInitialBookState());
   const [isLoading, setIsLoading] = useState(false);
   const [isEnriching, setIsEnriching] = useState(false);
   const [showEnrichModal, setShowEnrichModal] = useState(false);
   const [enrichSuggestions, setEnrichSuggestions] = useState([]);
 
   const isEditMode = route?.params?.book;
+
+  function getInitialBookState() {
+    return {
+      title: '',
+      subtitle: '',
+      authors: [],
+      description: '',
+      publisher: '',
+      publishedDate: '',
+      pageCount: '',
+      cover: '',
+      categories: [],
+      genre: '',
+      language: 'fr',
+      location: '',
+      condition: 'good',
+      price: '',
+      notes: '',
+      identifiers: []
+    };
+  }
 
   useEffect(() => {
     if (!isLibrarian()) {
