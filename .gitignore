@@ -46,3 +46,12 @@ azurecredentialcache/
 storage/
 sessions/
 
+# Native
+android/
+ios/
+*.orig.*
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovisionandroid/
