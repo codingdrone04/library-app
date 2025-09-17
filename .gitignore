@@ -20,6 +20,13 @@ web-build/
 # Metro
 .metro-health-check*
 
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
 # debug
 npm-debug.*
 yarn-debug.*
@@ -55,3 +62,4 @@ ios/
 *.p12
 *.key
 *.mobileprovisionandroid/
+.idea/
