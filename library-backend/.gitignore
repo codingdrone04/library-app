@@ -5,8 +5,6 @@
 
 # Dependencies
 node_modules/
-.packageLock.json
-package-lock.json
 
 # Production build
 dist/
