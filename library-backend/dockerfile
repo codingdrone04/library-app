@@ -1,0 +1,28 @@
+FROM node:23.11.0-alpine AS build
+
+WORKDIR /app
+
+COPY package.json package-lock.json ./
+
+RUN npm install
+
+RUN npm install -g esbuild
+
+COPY . .
+
+RUN npm run build
+
+FROM node:23.11.0-alpine AS execution
+
+WORKDIR /app
+
+COPY package.json package-lock.json ./
+RUN npm install --omit=dev
+
+COPY --from=build /app/dist/app.js .
+COPY .env .
+
+EXPOSE 3000
+USER node
+
+CMD ["node", "app.js"]

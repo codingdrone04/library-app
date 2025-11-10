@@ -1,0 +1,8 @@
+services:
+  library-backend :
+    build :
+      context : .
+      dockerfile : Dockerfile
+    image: library-backend:latest
+    ports:
+      - "3000:3000"

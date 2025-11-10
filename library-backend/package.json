@@ -8,7 +8,8 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "test:auth": "jest --testPathPattern=auth.test.js",
-    "test:coverage": "jest --coverage"
+    "test:coverage": "jest --coverage",
+    "build": "esbuild src/server.js --bundle --platform=node --minify --outfile=dist/app.js --packages=external"
   },
   "keywords": [],
   "author": "",
@@ -26,6 +27,7 @@
     "morgan": "^1.10.1",
     "multer": "^2.0.2",
     "pg": "^8.16.3",
+    "pg-hstore": "^2.3.4",
     "sequelize": "^6.37.7",
     "xml2js": "^0.6.2"
   },
