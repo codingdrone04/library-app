@@ -6,3 +6,13 @@ services:
     image: library-backend:latest
     ports:
       - "3000:3000"
+    networks:
+      - postgres-db
+
+
+
+
+networks:
+  postgres-db :
+    external: true
+    name: postgres-db
