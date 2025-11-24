@@ -39,7 +39,8 @@ async function startServer() {
     app.locals.models = { Library, User, Loan };
 
     // Synchroniser les tables (création automatique si elles n'existent pas)
-    await sequelize.sync();
+    // ⚠️ alter: true modifie les tables existantes pour ajouter les colonnes manquantes
+    await sequelize.sync({ alter: true });
     console.log('📋 Tables synchronisées !');
 
     // Créer bibliothèque par défaut si aucune n'existe
