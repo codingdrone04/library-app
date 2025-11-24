@@ -37,8 +37,9 @@ async function startServer() {
     Loan.belongsTo(Library, { foreignKey: 'library_id', as: 'library' });
 
     app.locals.models = { Library, User, Loan };
-    
-    await sequelize.sync({ alter: true });
+
+    // Synchroniser les tables (création automatique si elles n'existent pas)
+    await sequelize.sync();
     console.log('📋 Tables synchronisées !');
 
     // Créer bibliothèque par défaut si aucune n'existe

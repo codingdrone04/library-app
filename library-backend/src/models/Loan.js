@@ -17,7 +17,7 @@ const createLoanModel = (sequelize) => {
     },
     library_id: {
       type: DataTypes.INTEGER,
-      allowNull: false,
+      allowNull: false, // NOT NULL - requis pour chaque emprunt
       references: {
         model: 'libraries',
         key: 'id'

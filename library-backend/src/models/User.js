@@ -39,7 +39,7 @@ const createUserModel = (sequelize) => {
     },
     library_id: {
       type: DataTypes.INTEGER,
-      allowNull: false,
+      allowNull: false, // NOT NULL - requis pour chaque utilisateur
       references: {
         model: 'libraries',
         key: 'id'
