@@ -15,6 +15,16 @@ const createLoanModel = (sequelize) => {
         key: 'id'
       }
     },
+    library_id: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      references: {
+        model: 'libraries',
+        key: 'id'
+      },
+      onUpdate: 'CASCADE',
+      onDelete: 'RESTRICT'
+    },
     book_id: {
       type: DataTypes.STRING, // ID MongoDB du livre
       allowNull: false
@@ -74,10 +84,16 @@ const createLoanModel = (sequelize) => {
         fields: ['book_id']
       },
       {
+        fields: ['library_id']
+      },
+      {
         fields: ['status']
       },
       {
         fields: ['due_date']
+      },
+      {
+        fields: ['library_id', 'status']
       },
       {
         unique: true,

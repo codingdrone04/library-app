@@ -9,10 +9,12 @@ const authRoutes = require('./routes/auth');
 const bookRoutes = require('./routes/books');
 const userRoutes = require('./routes/users');
 const loanRoutes = require('./routes/loans');
+const libraryRoutes = require('./routes/libraries');
 
 // Import des middlewares
 const errorHandler = require('./middleware/errorHandler');
 const rateLimiter = require('./middleware/rateLimiter');
+const { libraryContext } = require('./middleware/libraryContext');
 
 const app = express();
 
@@ -40,6 +42,9 @@ if (process.env.NODE_ENV === 'development') {
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
+// Library context middleware (injecte library_id depuis le user)
+app.use(libraryContext);
+
 // Health check
 app.get('/health', (req, res) => {
   res.status(200).json({
@@ -52,6 +57,7 @@ app.get('/health', (req, res) => {
 
 // API Routes
 app.use('/api/auth', authRoutes);
+app.use('/api/libraries', libraryRoutes);
 app.use('/api/books', bookRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/loans', loanRoutes);
@@ -70,8 +76,9 @@ app.get('/', (req, res) => {
     docs: '/api/docs',
     endpoints: {
       auth: '/api/auth',
+      libraries: '/api/libraries',
       books: '/api/books',
-      users: '/api/users', 
+      users: '/api/users',
       loans: '/api/loans',
       health: '/health'
     }

@@ -237,6 +237,43 @@ class ApiService {
   }
 
   
+  async getLibraries() {
+    try {
+      const response = await this.api.get('/libraries');
+      return response.data.data || [];
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async getLibraryById(id) {
+    try {
+      const response = await this.api.get(`/libraries/${id}`);
+      return response.data.data;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async createLibrary(libraryData) {
+    try {
+      const response = await this.api.post('/libraries', libraryData);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async updateLibrary(id, libraryData) {
+    try {
+      const response = await this.api.put(`/libraries/${id}`, libraryData);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+
   async testConnection() {
     try {
       const response = await this.api.get('/books/stats');

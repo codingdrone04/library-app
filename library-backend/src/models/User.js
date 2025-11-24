@@ -37,6 +37,16 @@ const createUserModel = (sequelize) => {
       type: DataTypes.ENUM('user', 'librarian', 'admin'),
       defaultValue: 'user'
     },
+    library_id: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      references: {
+        model: 'libraries',
+        key: 'id'
+      },
+      onUpdate: 'CASCADE',
+      onDelete: 'RESTRICT'
+    },
     age: {
       type: DataTypes.INTEGER,
       allowNull: true

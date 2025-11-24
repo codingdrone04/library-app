@@ -13,12 +13,19 @@ router.get('/', async (req, res) => {
       category,
       author,
       search,
+      library_id,
       sortBy = 'title',
       sortOrder = 'asc'
     } = req.query;
 
     let query = {};
-    
+
+    // Filtrage par bibliothèque (priorité au query param, sinon contexte user)
+    const targetLibraryId = library_id || req.library_id;
+    if (targetLibraryId) {
+      query['library.library_id'] = parseInt(targetLibraryId);
+    }
+
     if (status) query.status = status;
     if (category) query.categories = { $in: [category] };
     if (author) query.authors = { $regex: author, $options: 'i' };
@@ -63,10 +70,16 @@ router.get('/', async (req, res) => {
 
 router.get('/popular', async (req, res) => {
   try {
-    const { limit = 10 } = req.query;
-    
-    const books = await Book.getPopular(parseInt(limit));
-    
+    const { limit = 10, library_id } = req.query;
+
+    // Filtrage par bibliothèque
+    const targetLibraryId = library_id || req.library_id;
+    const query = targetLibraryId ? { 'library.library_id': parseInt(targetLibraryId), status: 'available' } : { status: 'available' };
+
+    const books = await Book.find(query)
+      .sort({ totalBorrows: -1 })
+      .limit(parseInt(limit));
+
     res.json({
       success: true,
       data: books,
@@ -84,10 +97,16 @@ router.get('/popular', async (req, res) => {
 
 router.get('/recent', async (req, res) => {
   try {
-    const { limit = 10 } = req.query;
-    
-    const books = await Book.getRecent(parseInt(limit));
-    
+    const { limit = 10, library_id } = req.query;
+
+    // Filtrage par bibliothèque
+    const targetLibraryId = library_id || req.library_id;
+    const query = targetLibraryId ? { 'library.library_id': parseInt(targetLibraryId), status: 'available' } : { status: 'available' };
+
+    const books = await Book.find(query)
+      .sort({ 'library.acquisitionDate': -1 })
+      .limit(parseInt(limit));
+
     res.json({
       success: true,
       data: books,
@@ -147,13 +166,19 @@ router.get('/search/suggestions', async (req, res) => {
 
 router.get('/stats', async (req, res) => {
   try {
+    const { library_id } = req.query;
+
+    // Filtrage par bibliothèque
+    const targetLibraryId = library_id || req.library_id;
+    const baseQuery = targetLibraryId ? { 'library.library_id': parseInt(targetLibraryId) } : {};
+
     const stats = await Promise.all([
-      Book.countDocuments(),
-      Book.countDocuments({ status: 'available' }),
-      Book.countDocuments({ status: 'borrowed' }),
-      Book.countDocuments({ status: 'reserved' }),
-      Book.countDocuments({ status: 'damaged' }),
-      Book.countDocuments({ isEnriched: true })
+      Book.countDocuments(baseQuery),
+      Book.countDocuments({ ...baseQuery, status: 'available' }),
+      Book.countDocuments({ ...baseQuery, status: 'borrowed' }),
+      Book.countDocuments({ ...baseQuery, status: 'reserved' }),
+      Book.countDocuments({ ...baseQuery, status: 'damaged' }),
+      Book.countDocuments({ ...baseQuery, isEnriched: true })
     ]);
 
     res.json({
@@ -247,10 +272,19 @@ router.post('/', async (req, res) => {
       }
     }
 
+    // Utiliser le library_id du contexte utilisateur
+    if (!req.library_id) {
+      return res.status(403).json({
+        success: false,
+        error: 'Contexte bibliothèque requis. Vous devez être connecté.'
+      });
+    }
+
     let bookData = {
       title: title.trim(),
       authors: Array.isArray(authors) ? authors : [authors || 'Auteur inconnu'],
       library: {
+        library_id: req.library_id,
         location,
         condition,
         price: price ? parseFloat(price) : undefined,
@@ -425,11 +459,11 @@ router.post('/:id/enrich', async (req, res) => {
     }
 
     let enrichedData = null;
-    
+
     if (book.isbn) {
       enrichedData = await googleBooksService.searchByISBN(book.isbn);
     } else {
-      const searchQuery = `${book.title} ${book.author}`;
+      const searchQuery = `${book.title} ${book.authors[0]}`;
       const results = await googleBooksService.searchBooks(searchQuery, 1);
       if (results.length > 0) {
         enrichedData = results[0];

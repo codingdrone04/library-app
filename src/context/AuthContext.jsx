@@ -179,20 +179,30 @@ export const AuthProvider = ({ children }) => {
     return state.user?.role === 'admin';
   };
 
+  const getLibraryId = () => {
+    return state.user?.library_id;
+  };
+
+  const getLibrary = () => {
+    return state.user?.library;
+  };
+
   const value = {
     user: state.user,
     token: state.token,
     isAuthenticated: state.isAuthenticated,
     isLoading: state.isLoading,
     error: state.error,
-    
+
     login,
     register,
     logout,
     clearError,
-    
+
     isLibrarian,
     isAdmin,
+    getLibraryId,
+    getLibrary,
   };
 
   return (

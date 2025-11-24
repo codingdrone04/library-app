@@ -6,8 +6,14 @@ const Book = require('../models/Book');
 router.get('/', async (req, res) => {
   try {
     const { User, Loan } = req.app.locals.models;
-    
+    const { library_id } = req.query;
+
+    // Filtrage par bibliothèque (priorité au query param, sinon contexte user)
+    const targetLibraryId = library_id || req.library_id;
+    const where = targetLibraryId ? { library_id: parseInt(targetLibraryId) } : {};
+
     const loans = await Loan.findAll({
+      where,
       include: [{
         model: User,
         as: 'user',
@@ -33,13 +39,22 @@ router.get('/', async (req, res) => {
 router.get('/user/:userId', async (req, res) => {
   try {
     const { userId } = req.params;
+    const { library_id } = req.query;
     const { Loan } = req.app.locals.models;
-    
+
+    // Filtrage par bibliothèque
+    const targetLibraryId = library_id || req.library_id;
+    const where = {
+      user_id: userId,
+      status: ['active', 'renewed']
+    };
+
+    if (targetLibraryId) {
+      where.library_id = parseInt(targetLibraryId);
+    }
+
     const loans = await Loan.findAll({
-      where: {
-        user_id: userId,
-        status: ['active', 'renewed']
-      },
+      where,
       order: [['due_date', 'ASC']]
     });
 
@@ -146,17 +161,28 @@ router.post('/', async (req, res) => {
       });
     }
 
-    // Créer l'emprunt
+    // Vérifier que le livre appartient à la même bibliothèque que l'utilisateur
+    if (book.library.library_id !== user.library_id) {
+      return res.status(403).json({
+        success: false,
+        error: 'Ce livre n\'appartient pas à votre bibliothèque'
+      });
+    }
+
+    // Créer l'emprunt avec library_id
     const dueDate = new Date();
-    dueDate.setDate(dueDate.getDate() + 14); // 14 jours
+    const loanDuration = req.library_settings?.loan_duration_days || 14;
+    dueDate.setDate(dueDate.getDate() + loanDuration);
 
     const loan = await Loan.create({
       user_id: userId,
+      library_id: user.library_id,
       book_id: bookId,
       book_title: book.title,
-      book_author: book.author,
+      book_author: book.authors[0] || 'Auteur inconnu',
       book_isbn: book.isbn,
-      due_date: dueDate
+      due_date: dueDate,
+      max_renewals: req.library_settings?.max_renewals || 2
     });
 
     // Mettre à jour le statut du livre

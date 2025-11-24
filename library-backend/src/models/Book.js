@@ -15,6 +15,11 @@ const identifierSchema = new mongoose.Schema({
 
 // Schéma pour les informations de bibliothèque
 const libraryInfoSchema = new mongoose.Schema({
+  library_id: {
+    type: Number,
+    required: true,
+    index: true // Référence vers PostgreSQL libraries.id
+  },
   location: {
     type: String,
     required: true,
@@ -189,6 +194,7 @@ const bookSchema = new mongoose.Schema({
 // === INDEX COMPOSÉS ===
 bookSchema.index({ title: 'text', 'authors': 'text', description: 'text' });
 bookSchema.index({ status: 1, 'library.location': 1 });
+bookSchema.index({ 'library.library_id': 1, status: 1 }); // Index pour filtrage par bibliothèque
 bookSchema.index({ categories: 1, status: 1 });
 bookSchema.index({ 'identifiers.identifier': 1 });
 

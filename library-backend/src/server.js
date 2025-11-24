@@ -1,6 +1,7 @@
 const app = require('./app');
 const connectMongoDB = require('./config/mongodb');
 const connectPostgreSQL = require('./config/postgresql');
+const createLibraryModel = require('./models/Library');
 const createUserModel = require('./models/User');
 const createLoanModel = require('./models/Loan');
 
@@ -19,17 +20,49 @@ async function startServer() {
     console.log('✅ PostgreSQL connecté !');
     
     console.log('📊 Initialisation des modèles...');
+    const Library = createLibraryModel(sequelize);
     const User = createUserModel(sequelize);
     const Loan = createLoanModel(sequelize);
 
+    // Relations Library
+    Library.hasMany(User, { foreignKey: 'library_id', as: 'users' });
+    Library.hasMany(Loan, { foreignKey: 'library_id', as: 'loans' });
+
+    // Relations User
+    User.belongsTo(Library, { foreignKey: 'library_id', as: 'library' });
     User.hasMany(Loan, { foreignKey: 'user_id', as: 'loans' });
+
+    // Relations Loan
     Loan.belongsTo(User, { foreignKey: 'user_id', as: 'user' });
-    
-    app.locals.models = { User, Loan };
+    Loan.belongsTo(Library, { foreignKey: 'library_id', as: 'library' });
+
+    app.locals.models = { Library, User, Loan };
     
     await sequelize.sync({ alter: true });
     console.log('📋 Tables synchronisées !');
-    
+
+    // Créer bibliothèque par défaut si aucune n'existe
+    let defaultLibrary = await Library.findOne({ where: { code: 'MAIN' } });
+    if (!defaultLibrary) {
+      console.log('🏛️ Création de la bibliothèque principale par défaut...');
+      defaultLibrary = await Library.create({
+        name: 'Bibliothèque Principale',
+        code: 'MAIN',
+        address: '123 Rue des Livres',
+        city: 'Paris',
+        phone: '01 23 45 67 89',
+        email: 'contact@bibliotheque.fr',
+        settings: {
+          max_loans_per_user: 5,
+          loan_duration_days: 14,
+          max_renewals: 2,
+          late_fee_per_day: 0.50
+        },
+        is_active: true
+      });
+      console.log('✅ Bibliothèque créée: Bibliothèque Principale');
+    }
+
     const adminExists = await User.findOne({ where: { username: 'admin' } });
     if (!adminExists) {
       console.log('👨‍💼 Création de l\'admin par défaut...');
@@ -39,7 +72,8 @@ async function startServer() {
         username: 'admin',
         email: 'admin@library.com',
         password_hash: 'admin',
-        role: 'admin'
+        role: 'admin',
+        library_id: defaultLibrary.id
       });
       console.log('✅ Admin créé: admin / admin');
     }
@@ -53,7 +87,8 @@ async function startServer() {
         username: 'user',
         email: 'user@library.com',
         password_hash: 'user',
-        role: 'user'
+        role: 'user',
+        library_id: defaultLibrary.id
       });
       console.log('✅ Utilisateur créé: user / user');
     }
