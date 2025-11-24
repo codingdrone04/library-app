@@ -26,19 +26,23 @@ class ApiService {
 
   determineBaseURL() {
     if (__DEV__) {
+      // Si localConfig existe, l'utiliser pour TOUTES les plateformes
+      if (localConfig?.API_HOST) {
+        const port = localConfig.API_PORT ? `:${localConfig.API_PORT}` : '';
+        return `http://${localConfig.API_HOST}${port}/api`;
+      }
+
+      // Sinon, auto-détection par plateforme
       if (Platform.OS === 'android') {
-        if (localConfig?.API_HOST) {
-          return `http://${localConfig.API_HOST}:${localConfig.API_PORT || '3000'}/api`;
-        }
-        
         const { manifest } = Constants;
         if (manifest?.debuggerHost) {
           const localIP = manifest.debuggerHost.split(':')[0];
           return `http://${localIP}:3000/api`;
         }
-        
+
         return 'http://10.0.2.2:3000/api';
       } else {
+        // iOS / Web en dev : localhost par défaut
         return `http://localhost:3000/api`;
       }
     } else {
