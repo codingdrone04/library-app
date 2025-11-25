@@ -16,7 +16,6 @@ import BookCard from '../components/BookCard';
 import SearchBar from '../components/Searchbar';
 import { COLORS, SPACING, ROUTES } from '../constants';
 import { globalStyles } from '../styles/globalStyles';
-import DevLogout from '../components/DevLogout';
 
 const BookListScreen = ({ navigation }) => {
   const { user, isLibrarian } = useAuth();
@@ -138,7 +137,7 @@ const BookListScreen = ({ navigation }) => {
       {/* Welcome Message */}
       <View style={styles.welcomeContainer}>
         <Text style={styles.welcomeText}>
-          Bonjour {user?.firstname || 'Utilisateur'} 👋
+          {user?.firstname || user?.username || 'Utilisateur'}
         </Text>
         {isLibrarian() && (
           <View style={styles.librarianBadge}>
@@ -300,7 +299,6 @@ const BookListScreen = ({ navigation }) => {
           contentContainerStyle={styles.scrollContent}
         />
       )}
-      <DevLogout />
     </View>
   );
 };

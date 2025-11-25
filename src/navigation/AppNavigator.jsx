@@ -260,8 +260,8 @@ const MainTabNavigator = () => {
       screenOptions={({ route }) => ({
         headerShown: false,
         tabBarStyle: {
-          backgroundColor: COLORS.background,
-          borderTopColor: COLORS.surface,
+          backgroundColor: COLORS.surface,
+          borderTopColor: COLORS.surfaceLight,
           borderTopWidth: 1,
           height: 85,
           paddingBottom: 15,
