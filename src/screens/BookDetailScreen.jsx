@@ -448,34 +448,25 @@ const BookDetailScreen = ({ route, navigation }) => {
       </ScrollView>
 
 
-      <View style={styles.actionContainer}>
-        {bookData.status === 'available' && (
-          <View style={styles.infoButton}>
-            <Ionicons name="information-circle" size={20} color={COLORS.info} />
-            <Text style={[styles.infoButtonText, { marginLeft: SPACING.sm }]}>
-              Pour emprunter ce livre, rendez-vous à la bibliothèque
-            </Text>
-          </View>
-        )}
-
-        {bookData.status === 'borrowed' && bookData.borrowedBy === user?.id && (
-          <View style={styles.infoButton}>
-            <Ionicons name="library" size={20} color={COLORS.warning} />
-            <Text style={[styles.infoButtonText, { marginLeft: SPACING.sm }]}>
-              Livre en votre possession - À retourner physiquement
-            </Text>
-          </View>
-        )}
-
-        {bookData.status === 'borrowed' && bookData.borrowedBy !== user?.id && (
-          <View style={styles.unavailableButton}>
-            <Ionicons name="time" size={20} color={COLORS.warning} />
-            <Text style={[styles.unavailableButtonText, { marginLeft: SPACING.sm }]}>
-              Livre emprunté par un autre utilisateur
-            </Text>
-          </View>
-        )}
-      </View>
+      {bookData.status === 'borrowed' && (
+        <View style={styles.actionContainer}>
+          {bookData.borrowedBy === user?.id ? (
+            <View style={styles.infoButton}>
+              <Ionicons name="library" size={20} color={COLORS.warning} />
+              <Text style={[styles.infoButtonText, { marginLeft: SPACING.sm }]}>
+                Livre en votre possession - À retourner physiquement
+              </Text>
+            </View>
+          ) : (
+            <View style={styles.unavailableButton}>
+              <Ionicons name="time" size={20} color={COLORS.warning} />
+              <Text style={[styles.unavailableButtonText, { marginLeft: SPACING.sm }]}>
+                Livre emprunté par un autre utilisateur
+              </Text>
+            </View>
+          )}
+        </View>
+      )}
     </View>
   );
 };

@@ -118,7 +118,10 @@ const BookCard = ({
           {renderStatusBadge()}
           
           {showLocation && bookData.location && (
-            <Text style={styles.locationText}>📍 {bookData.location}</Text>
+            <View style={styles.locationContainer}>
+              <Ionicons name="location" size={10} color={COLORS.textMuted} />
+              <Text style={styles.locationText}>{bookData.location}</Text>
+            </View>
           )}
         </View>
       </TouchableOpacity>
@@ -141,7 +144,10 @@ const BookCard = ({
           {renderStatusBadge()}
           
           {showLocation && bookData.location && (
-            <Text style={styles.locationText}>📍 {bookData.location}</Text>
+            <View style={styles.locationContainer}>
+              <Ionicons name="location" size={10} color={COLORS.textMuted} />
+              <Text style={styles.locationText}>{bookData.location}</Text>
+            </View>
           )}
         </View>
       </TouchableOpacity>
@@ -164,7 +170,10 @@ const BookCard = ({
           {renderStatusBadge()}
           
           {showLocation && bookData.location && (
-            <Text style={styles.locationText}>📍 {bookData.location}</Text>
+            <View style={styles.locationContainer}>
+              <Ionicons name="location" size={10} color={COLORS.textMuted} />
+              <Text style={styles.locationText}>{bookData.location}</Text>
+            </View>
           )}
         </View>
       </View>
@@ -277,11 +286,16 @@ const styles = StyleSheet.create({
     marginLeft: 4,
   },
 
+  locationContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: SPACING.xs,
+    gap: 4,
+  },
   locationText: {
     ...globalStyles.caption,
     fontSize: 10,
     fontStyle: 'italic',
-    marginTop: SPACING.xs,
   },
 });
 
