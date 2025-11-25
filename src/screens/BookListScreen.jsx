@@ -1,11 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  ScrollView, 
-  TextInput, 
-  StyleSheet, 
-  View, 
-  Text, 
-  FlatList, 
+import {
+  StyleSheet,
+  View,
+  Text,
+  FlatList,
   TouchableOpacity,
   RefreshControl,
   ActivityIndicator,
@@ -203,26 +201,21 @@ const BookListScreen = ({ navigation }) => {
     );
   }
 
-  const renderContent = () => {
-    if (isSearching) {
-      return (
+  const renderListHeader = () => (
+    <>
+      {renderHeader()}
+      {isSearching ? (
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>
             Résultats de recherche ({searchResults.length})
           </Text>
-          {searchLoading ? (
+          {searchLoading && (
             <View style={styles.loadingContainer}>
               <ActivityIndicator size="large" color={COLORS.primary} />
               <Text style={styles.loadingText}>Recherche en cours...</Text>
             </View>
-          ) : searchResults.length > 0 ? (
-            <FlatList
-              data={searchResults}
-              renderItem={renderSearchResult}
-              keyExtractor={(item) => item._id || item.id}
-              showsVerticalScrollIndicator={false}
-            />
-          ) : (
+          )}
+          {!searchLoading && searchResults.length === 0 && (
             <View style={styles.noResults}>
               <Ionicons name="search" size={60} color={COLORS.textMuted} />
               <Text style={styles.noResultsText}>Aucun livre trouvé</Text>
@@ -232,77 +225,81 @@ const BookListScreen = ({ navigation }) => {
             </View>
           )}
         </View>
-      );
+      ) : (
+        <>
+          {/* Popular Section */}
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>
+              Livres populaires ({popularBooks.length})
+            </Text>
+            {popularBooks.length > 0 ? (
+              <FlatList
+                data={popularBooks}
+                renderItem={renderPopularBook}
+                keyExtractor={(item) => item._id || item.id}
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.horizontalList}
+              />
+            ) : (
+              <Text style={styles.emptyText}>Aucun livre disponible</Text>
+            )}
+          </View>
+
+          {/* New Books Section Title */}
+          <View style={[styles.section, styles.lastSection]}>
+            <Text style={styles.sectionTitle}>
+              Nouveautés ({newBooks.length})
+            </Text>
+            {newBooks.length === 0 && (
+              <Text style={styles.emptyText}>Aucune nouveauté</Text>
+            )}
+          </View>
+        </>
+      )}
+    </>
+  );
+
+  const getListData = () => {
+    if (isSearching) {
+      return searchLoading ? [] : searchResults;
     }
+    return newBooks;
+  };
 
-    if (isLoading) {
-      return (
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={COLORS.primary} />
-          <Text style={styles.loadingText}>Chargement des livres...</Text>
-        </View>
-      );
+  const renderListItem = ({ item }) => {
+    if (isSearching) {
+      return renderSearchResult({ item });
     }
-
-    return (
-      <>
-        {/* Popular Section */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>
-            Livres populaires ({popularBooks.length})
-          </Text>
-          {popularBooks.length > 0 ? (
-            <FlatList
-              data={popularBooks}
-              renderItem={renderPopularBook}
-              keyExtractor={(item) => item._id || item.id}
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.horizontalList}
-            />
-          ) : (
-            <Text style={styles.emptyText}>Aucun livre disponible</Text>
-          )}
-        </View>
-
-        {/* New Section */}
-        <View style={[styles.section, styles.lastSection]}>
-          <Text style={styles.sectionTitle}>
-            Nouveautés ({newBooks.length})
-          </Text>
-          {newBooks.length > 0 ? (
-            <FlatList
-              data={newBooks}
-              renderItem={renderNewBook}
-              keyExtractor={(item) => item._id || item.id}
-              showsVerticalScrollIndicator={false}
-            />
-          ) : (
-            <Text style={styles.emptyText}>Aucune nouveauté</Text>
-          )}
-        </View>
-      </>
-    );
+    return renderNewBook({ item });
   };
 
   return (
     <View style={globalStyles.container}>
-      <ScrollView 
-        style={styles.container}
-        refreshControl={
-          <RefreshControl
-            refreshing={isRefreshing}
-            onRefresh={onRefresh}
-            tintColor={COLORS.primary}
-            colors={[COLORS.primary]}
-          />
-        }
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.scrollContent}
-      >
-        {renderHeader()}
-        {renderContent()}
-      </ScrollView>
+      {isLoading ? (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={COLORS.primary} />
+          <Text style={styles.loadingText}>Chargement des livres...</Text>
+        </View>
+      ) : (
+        <FlatList
+          style={styles.container}
+          data={getListData()}
+          renderItem={renderListItem}
+          keyExtractor={(item) => item._id || item.id}
+          ListHeaderComponent={renderListHeader}
+          refreshControl={
+            <RefreshControl
+              refreshing={isRefreshing}
+              onRefresh={onRefresh}
+              tintColor={COLORS.primary}
+              colors={[COLORS.primary]}
+            />
+          }
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.scrollContent}
+        />
+      )}
       <DevLogout />
     </View>
   );

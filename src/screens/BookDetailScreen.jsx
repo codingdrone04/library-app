@@ -397,7 +397,7 @@ const BookDetailScreen = ({ route, navigation }) => {
 
           <View style={styles.metaRow}>
             <Ionicons name="location" size={16} color={COLORS.textMuted} />
-            <Text style={styles.metaText}>📍 {bookData.location}</Text>
+            <Text style={styles.metaText}>{bookData.location}</Text>
           </View>
 
           {bookData.publisher && (
