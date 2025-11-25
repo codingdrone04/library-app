@@ -29,7 +29,10 @@ class ApiService {
       // Si localConfig existe, l'utiliser pour TOUTES les plateformes
       if (localConfig?.API_HOST) {
         const port = localConfig.API_PORT ? `:${localConfig.API_PORT}` : '';
-        return `http://${localConfig.API_HOST}${port}/api`;
+        // Si c'est un domaine externe (contient un point), pas de /api (géré par reverse proxy)
+        // Sinon (localhost, IP), ajouter /api
+        const apiSuffix = localConfig.API_HOST.includes('.') && !localConfig.API_HOST.match(/^\d/) ? '' : '/api';
+        return `http://${localConfig.API_HOST}${port}${apiSuffix}`;
       }
 
       // Sinon, auto-détection par plateforme
@@ -46,7 +49,7 @@ class ApiService {
         return `http://localhost:3000/api`;
       }
     } else {
-      return 'https://your-production-api.com/api';
+      return 'https://your-production-api.com';
     }
   }
 
