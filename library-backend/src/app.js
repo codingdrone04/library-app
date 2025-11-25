@@ -42,10 +42,7 @@ if (process.env.NODE_ENV === 'development') {
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// Library context middleware (injecte library_id depuis le user)
-app.use(libraryContext);
-
-// Health check
+// Health check (AVANT libraryContext pour ne pas dépendre de la DB)
 app.get('/health', (req, res) => {
   res.status(200).json({
     status: 'OK',
@@ -55,17 +52,20 @@ app.get('/health', (req, res) => {
   });
 });
 
-// API Routes
-app.use('/api/auth', authRoutes);
-app.use('/api/libraries', libraryRoutes);
-app.use('/api/books', bookRoutes);
-app.use('/api/users', userRoutes);
-app.use('/api/loans', loanRoutes);
+// Library context middleware (injecte library_id depuis le user)
+app.use(libraryContext);
+
+// API Routes (directement à la racine pour compatibilité reverse proxy)
+app.use('/auth', authRoutes);
+app.use('/libraries', libraryRoutes);
+app.use('/books', bookRoutes);
+app.use('/users', userRoutes);
+app.use('/loans', loanRoutes);
 
 // ✅ Routes dev APRÈS le body parsing
 if (process.env.NODE_ENV === 'development') {
   const devRoutes = require('./routes/dev');
-  app.use('/api/dev', devRoutes);
+  app.use('/dev', devRoutes);
 }
 
 // Route par défaut
@@ -73,13 +73,13 @@ app.get('/', (req, res) => {
   res.json({
     message: '📚 Library Management API',
     version: '1.0.0',
-    docs: '/api/docs',
+    docs: '/docs',
     endpoints: {
-      auth: '/api/auth',
-      libraries: '/api/libraries',
-      books: '/api/books',
-      users: '/api/users',
-      loans: '/api/loans',
+      auth: '/auth',
+      libraries: '/libraries',
+      books: '/books',
+      users: '/users',
+      loans: '/loans',
       health: '/health'
     }
   });
@@ -90,7 +90,7 @@ app.use('*', (req, res) => {
   res.status(404).json({
     error: 'Route not found',
     message: `Cannot ${req.method} ${req.originalUrl}`,
-    availableRoutes: ['/api/auth', '/api/books', '/api/users', '/api/loans']
+    availableRoutes: ['/auth', '/books', '/users', '/loans', '/libraries']
   });
 });
 
