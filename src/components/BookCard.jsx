@@ -83,8 +83,16 @@ const BookCard = ({
     );
   };
 
-  const renderStatusBadge = () => {
+  const renderStatusBadge = (iconOnly = false) => {
     if (!showStatus) return null;
+
+    if (iconOnly) {
+      return (
+        <View style={styles.statusIconOnly}>
+          <Ionicons name={statusInfo.icon} size={16} color={statusInfo.color} />
+        </View>
+      );
+    }
 
     return (
       <View style={[styles.statusBadge, { backgroundColor: statusInfo.color + '20' }]}>
@@ -100,23 +108,26 @@ const BookCard = ({
     return (
       <TouchableOpacity onPress={() => onPress?.(book)} style={styles.horizontalCard}>
         {renderCover()}
-        
+
         <View style={styles.horizontalTextContainer}>
-          <Text style={styles.horizontalTitle} numberOfLines={2}>
-            {bookData.title}
-          </Text>
-          <Text style={styles.horizontalAuthor} numberOfLines={1}>
-            {bookData.author}
-          </Text>
-          
-          {bookData.genre && (
-            <Text style={styles.horizontalGenre} numberOfLines={1}>
-              {bookData.genre}
-            </Text>
-          )}
-          
-          {renderStatusBadge()}
-          
+          <View style={styles.horizontalTopRow}>
+            <View style={styles.horizontalTitleContainer}>
+              <Text style={styles.horizontalTitle} numberOfLines={2}>
+                {bookData.title}
+              </Text>
+              <Text style={styles.horizontalAuthor} numberOfLines={1}>
+                {bookData.author}
+              </Text>
+
+              {bookData.genre && (
+                <Text style={styles.horizontalGenre} numberOfLines={1}>
+                  {bookData.genre}
+                </Text>
+              )}
+            </View>
+            {renderStatusBadge()}
+          </View>
+
           {showLocation && bookData.location && (
             <View style={styles.locationContainer}>
               <Ionicons name="location" size={10} color={COLORS.textMuted} />
@@ -132,23 +143,17 @@ const BookCard = ({
     return (
       <TouchableOpacity onPress={() => onPress?.(book)} style={styles.compactCard}>
         {renderCover()}
-        
+
         <View style={styles.compactTextContainer}>
-          <Text style={styles.compactTitle} numberOfLines={2}>
-            {bookData.title}
-          </Text>
+          <View style={styles.compactTitleRow}>
+            <Text style={styles.compactTitle} numberOfLines={2}>
+              {bookData.title}
+            </Text>
+            {renderStatusBadge(true)}
+          </View>
           <Text style={styles.compactAuthor} numberOfLines={1}>
             {bookData.author}
           </Text>
-          
-          {renderStatusBadge()}
-          
-          {showLocation && bookData.location && (
-            <View style={styles.locationContainer}>
-              <Ionicons name="location" size={10} color={COLORS.textMuted} />
-              <Text style={styles.locationText}>{bookData.location}</Text>
-            </View>
-          )}
         </View>
       </TouchableOpacity>
     );
@@ -158,23 +163,27 @@ const BookCard = ({
     <TouchableOpacity onPress={() => onPress?.(book)} style={styles.card}>
       <View style={globalStyles.row}>
         {renderCover()}
-        
+
         <View style={styles.textContainer}>
-          <Text style={globalStyles.title}>{bookData.title}</Text>
-          <Text style={globalStyles.subtitle}>{bookData.author}</Text>
-          
-          {bookData.genre && (
-            <Text style={globalStyles.caption}>{bookData.genre}</Text>
-          )}
-          
-          {renderStatusBadge()}
-          
-          {showLocation && bookData.location && (
-            <View style={styles.locationContainer}>
-              <Ionicons name="location" size={10} color={COLORS.textMuted} />
-              <Text style={styles.locationText}>{bookData.location}</Text>
-            </View>
-          )}
+          <View>
+            <Text style={globalStyles.title}>{bookData.title}</Text>
+            <Text style={globalStyles.subtitle}>{bookData.author}</Text>
+
+            {bookData.genre && (
+              <Text style={globalStyles.caption}>{bookData.genre}</Text>
+            )}
+          </View>
+
+          <View style={styles.defaultBottomInfo}>
+            {renderStatusBadge()}
+
+            {showLocation && bookData.location && (
+              <View style={styles.locationContainer}>
+                <Ionicons name="location" size={10} color={COLORS.textMuted} />
+                <Text style={styles.locationText}>{bookData.location}</Text>
+              </View>
+            )}
+          </View>
         </View>
       </View>
     </TouchableOpacity>
@@ -196,8 +205,13 @@ const styles = StyleSheet.create({
   
   textContainer: {
     flex: 1,
+    justifyContent: 'space-between',
   },
-  
+  defaultBottomInfo: {
+    flexDirection: 'column',
+    gap: SPACING.xs,
+    marginTop: SPACING.sm,
+  },
 
   horizontalCard: {
     flexDirection: 'row',
@@ -222,6 +236,15 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'space-between',
   },
+  horizontalTopRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+  },
+  horizontalTitleContainer: {
+    flex: 1,
+    marginRight: SPACING.sm,
+  },
   horizontalTitle: {
     ...globalStyles.title,
     fontSize: 16,
@@ -234,12 +257,16 @@ const styles = StyleSheet.create({
   },
   horizontalGenre: {
     ...globalStyles.caption,
-    marginBottom: SPACING.sm,
+    marginBottom: 0,
   },
 
   compactCard: {
     width: 130,
     marginRight: SPACING.md,
+  },
+  compactCoverContainer: {
+    position: 'relative',
+    marginBottom: SPACING.sm,
   },
   compactCover: {
     width: 130,
@@ -250,16 +277,23 @@ const styles = StyleSheet.create({
   compactTextContainer: {
     flex: 1,
   },
+  compactTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    marginBottom: SPACING.xs,
+  },
   compactTitle: {
     ...globalStyles.subtitle,
     fontSize: 14,
     fontWeight: '600',
-    marginBottom: SPACING.xs,
     lineHeight: 18,
+    flex: 1,
+    marginRight: SPACING.xs,
   },
   compactAuthor: {
     ...globalStyles.caption,
-    marginBottom: SPACING.sm,
+    marginBottom: 0,
   },
 
   placeholderCover: {
@@ -274,11 +308,10 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     borderRadius: 12,
     alignSelf: 'flex-start',
-    marginTop: SPACING.xs,
     flexDirection: 'row',
     alignItems: 'center',
   },
-  
+
   statusText: {
     fontSize: 10,
     fontWeight: '600',
@@ -286,10 +319,16 @@ const styles = StyleSheet.create({
     marginLeft: 4,
   },
 
+  statusIconOnly: {
+    width: 16,
+    height: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+
   locationContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: SPACING.xs,
     gap: 4,
   },
   locationText: {

@@ -12,7 +12,8 @@
       "backgroundColor": "#2A2A2A"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.xenfroz.libraryapp"
     },
     "android": {
       "adaptiveIcon": {

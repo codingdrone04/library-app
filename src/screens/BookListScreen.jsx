@@ -229,7 +229,7 @@ const BookListScreen = ({ navigation }) => {
           {/* Popular Section */}
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>
-              Livres populaires ({popularBooks.length})
+              Livres populaires
             </Text>
             {popularBooks.length > 0 ? (
               <FlatList
@@ -248,7 +248,7 @@ const BookListScreen = ({ navigation }) => {
           {/* New Books Section Title */}
           <View style={[styles.section, styles.lastSection]}>
             <Text style={styles.sectionTitle}>
-              Nouveautés ({newBooks.length})
+              Nouveautés
             </Text>
             {newBooks.length === 0 && (
               <Text style={styles.emptyText}>Aucune nouveauté</Text>

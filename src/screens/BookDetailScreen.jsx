@@ -10,7 +10,6 @@ import {
   Alert,
   ActivityIndicator
 } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
@@ -26,7 +25,6 @@ const BookDetailScreen = ({ route, navigation }) => {
   const [recommendedBooks, setRecommendedBooks] = useState([]);
   const [isBorrowing, setIsBorrowing] = useState(false);
   const [isReturning, setIsReturning] = useState(false);
-  const [gradientColors, setGradientColors] = useState([COLORS.background, COLORS.background]);
 
   const getBookData = (book) => {
     if (!book) return {};
@@ -82,29 +80,8 @@ const BookDetailScreen = ({ route, navigation }) => {
       loadBookDetails();
     } else if (book) {
       loadRecommendations();
-      extractColors();
     }
   }, [book, isLibrarian]);
-
-  const extractColors = async () => {
-    const bookData = getBookData(book);
-    if (!bookData.cover) {
-      setGradientColors([COLORS.background, COLORS.background]);
-      return;
-    }
-
-    try {
-      const colors = [
-        COLORS.primary + '40',
-        COLORS.primaryDark + '20',
-        COLORS.background
-      ];
-      setGradientColors(colors);
-    } catch (error) {
-      console.error('Error extracting colors:', error);
-      setGradientColors([COLORS.background, COLORS.background]);
-    }
-  };
 
   const loadBookDetails = async () => {
     try {
@@ -366,12 +343,10 @@ const BookDetailScreen = ({ route, navigation }) => {
 
   return (
     <View style={styles.container}>
-      <LinearGradient
-        colors={gradientColors}
-        style={styles.gradientBackground}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 0, y: 1 }}
-      />
+      {/* Simple elegant gradient overlay */}
+      <View style={styles.gradientTop} />
+      <View style={styles.gradientMid} />
+
       <ScrollView style={styles.scrollContainer} showsVerticalScrollIndicator={false}>
         {/* Cover Image */}
         <View style={styles.coverContainer}>
@@ -506,12 +481,23 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: COLORS.background,
   },
-  gradientBackground: {
+  gradientTop: {
     position: 'absolute',
     top: 0,
     left: 0,
     right: 0,
-    height: 500,
+    height: 400,
+    backgroundColor: COLORS.primary,
+    opacity: 0.08,
+  },
+  gradientMid: {
+    position: 'absolute',
+    top: 200,
+    left: 0,
+    right: 0,
+    height: 300,
+    backgroundColor: COLORS.primaryDark,
+    opacity: 0.04,
   },
   scrollContainer: {
     flex: 1,
