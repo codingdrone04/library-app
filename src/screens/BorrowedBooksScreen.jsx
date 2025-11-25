@@ -93,7 +93,7 @@ const BorrowedBooksScreen = ({ navigation }) => {
     } else {
       return {
         statusInfo: {
-          text: `📅 À rendre le ${formatDate(book.returnDate)}`,
+          text: `À rendre le ${formatDate(book.returnDate)}`,
           color: COLORS.success,
           icon: 'calendar',
           isOverdue: false,
@@ -111,8 +111,8 @@ const BorrowedBooksScreen = ({ navigation }) => {
 
   const handleRequestRenewal = async (book) => {
     Alert.alert(
-      '🔄 Demande de renouvellement',
-      `Demander le renouvellement de "${book.title}" ?\n\n⚠️ Cette demande sera envoyée au bibliothécaire pour validation.`,
+      'Demande de renouvellement',
+      `Demander le renouvellement de "${book.title}" ?\n\nCette demande sera envoyée au bibliothécaire pour validation.`,
       [
         { text: 'Annuler', style: 'cancel' },
         { 
@@ -181,11 +181,11 @@ const BorrowedBooksScreen = ({ navigation }) => {
 
           <View style={styles.borrowInfo}>
             <Text style={styles.renewalInfo}>
-              🔄 Renouvellements: {item.renewalCount}/{item.maxRenewals}
+              Renouvellements: {item.renewalCount}/{item.maxRenewals}
             </Text>
             {item.borrowDate && (
               <Text style={styles.borrowDate}>
-                📅 Emprunté le {formatDate(item.borrowDate)}
+                Emprunté le {formatDate(item.borrowDate)}
               </Text>
             )}
           </View>
@@ -213,8 +213,8 @@ const BorrowedBooksScreen = ({ navigation }) => {
                 style={[styles.actionButton, styles.infoButton]}
                 onPress={() => {
                   Alert.alert(
-                    '📚 Pour retourner ce livre',
-                    `"${item.title}"\n\n📍 Rendez-vous à la bibliothèque avec le livre physique.\n\n⏰ Date limite: ${formatDate(item.returnDate)}`,
+                    'Pour retourner ce livre',
+                    `"${item.title}"\n\nRendez-vous à la bibliothèque avec le livre physique.\n\nDate limite: ${formatDate(item.returnDate)}`,
                     [
                       { text: 'OK' },
                       { text: '📞 Contacter', onPress: handleContactLibrarian }
@@ -234,7 +234,7 @@ const BorrowedBooksScreen = ({ navigation }) => {
 
   const renderHeader = () => (
     <View style={styles.header}>
-      <Text style={globalStyles.pageTitle}>📚 Mes livres</Text>
+      <Text style={globalStyles.pageTitle}>Mes livres</Text>
       <Text style={styles.subtitle}>
         {borrowedBooks.length} livre(s) emprunté(s)
       </Text>
@@ -265,7 +265,7 @@ const BorrowedBooksScreen = ({ navigation }) => {
           <View style={styles.reminderContainer}>
             <Ionicons name="information-circle" size={20} color={COLORS.info} />
             <Text style={styles.reminderText}>
-              💡 Pour retourner ou renouveler un livre, rendez-vous à la bibliothèque
+              Pour retourner ou renouveler un livre, rendez-vous à la bibliothèque
             </Text>
           </View>
         </>

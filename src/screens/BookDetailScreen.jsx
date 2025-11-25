@@ -53,8 +53,9 @@ const BookDetailScreen = ({ route, navigation }) => {
     navigation.setOptions({
       headerShown: true,
       headerStyle: {
-        backgroundColor: COLORS.background,
+        backgroundColor: 'transparent',
       },
+      headerTransparent: true,
       headerTintColor: COLORS.textPrimary,
       headerTitle: '',
       headerBackTitleVisible: false,
@@ -74,7 +75,7 @@ const BookDetailScreen = ({ route, navigation }) => {
         ) : null
       ),
     });
-  
+
     if (!book && bookId) {
       loadBookDetails();
     } else if (book) {
@@ -342,6 +343,10 @@ const BookDetailScreen = ({ route, navigation }) => {
 
   return (
     <View style={styles.container}>
+      {/* Simple elegant gradient overlay */}
+      <View style={styles.gradientTop} />
+      <View style={styles.gradientMid} />
+
       <ScrollView style={styles.scrollContainer} showsVerticalScrollIndicator={false}>
         {/* Cover Image */}
         <View style={styles.coverContainer}>
@@ -397,7 +402,7 @@ const BookDetailScreen = ({ route, navigation }) => {
 
           <View style={styles.metaRow}>
             <Ionicons name="location" size={16} color={COLORS.textMuted} />
-            <Text style={styles.metaText}>📍 {bookData.location}</Text>
+            <Text style={styles.metaText}>{bookData.location}</Text>
           </View>
 
           {bookData.publisher && (
@@ -448,34 +453,25 @@ const BookDetailScreen = ({ route, navigation }) => {
       </ScrollView>
 
 
-      <View style={styles.actionContainer}>
-        {bookData.status === 'available' && (
-          <View style={styles.infoButton}>
-            <Ionicons name="information-circle" size={20} color={COLORS.info} />
-            <Text style={[styles.infoButtonText, { marginLeft: SPACING.sm }]}>
-              Pour emprunter ce livre, rendez-vous à la bibliothèque
-            </Text>
-          </View>
-        )}
-
-        {bookData.status === 'borrowed' && bookData.borrowedBy === user?.id && (
-          <View style={styles.infoButton}>
-            <Ionicons name="library" size={20} color={COLORS.warning} />
-            <Text style={[styles.infoButtonText, { marginLeft: SPACING.sm }]}>
-              Livre en votre possession - À retourner physiquement
-            </Text>
-          </View>
-        )}
-
-        {bookData.status === 'borrowed' && bookData.borrowedBy !== user?.id && (
-          <View style={styles.unavailableButton}>
-            <Ionicons name="time" size={20} color={COLORS.warning} />
-            <Text style={[styles.unavailableButtonText, { marginLeft: SPACING.sm }]}>
-              Livre emprunté par un autre utilisateur
-            </Text>
-          </View>
-        )}
-      </View>
+      {bookData.status === 'borrowed' && (
+        <View style={styles.actionContainer}>
+          {bookData.borrowedBy === user?.id ? (
+            <View style={styles.infoButton}>
+              <Ionicons name="library" size={20} color={COLORS.warning} />
+              <Text style={[styles.infoButtonText, { marginLeft: SPACING.sm }]}>
+                Livre en votre possession - À retourner physiquement
+              </Text>
+            </View>
+          ) : (
+            <View style={styles.unavailableButton}>
+              <Ionicons name="time" size={20} color={COLORS.warning} />
+              <Text style={[styles.unavailableButtonText, { marginLeft: SPACING.sm }]}>
+                Livre emprunté par un autre utilisateur
+              </Text>
+            </View>
+          )}
+        </View>
+      )}
     </View>
   );
 };
@@ -485,6 +481,24 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: COLORS.background,
   },
+  gradientTop: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 400,
+    backgroundColor: COLORS.primary,
+    opacity: 0.08,
+  },
+  gradientMid: {
+    position: 'absolute',
+    top: 200,
+    left: 0,
+    right: 0,
+    height: 300,
+    backgroundColor: COLORS.primaryDark,
+    opacity: 0.04,
+  },
   scrollContainer: {
     flex: 1,
   },
@@ -492,6 +506,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: SPACING.xl,
     paddingHorizontal: SPACING.containerPadding,
+    paddingTop: 100,
   },
   cover: {
     width: 200,

@@ -169,56 +169,41 @@ const ManageBooksMainScreen = ({ navigation }) => {
             color: COLORS.textPrimary,
             marginBottom: 16
           }}>
-            📊 Aperçu rapide
+            Aperçu rapide
           </Text>
           <View style={{
             flexDirection: 'row',
             justifyContent: 'space-around'
           }}>
             <View style={{ alignItems: 'center' }}>
-              <Text style={{
-                fontSize: 24,
-                fontWeight: 'bold',
-                color: COLORS.primary
-              }}>
-                📚
-              </Text>
+              <Ionicons name="library" size={28} color={COLORS.primary} />
               <Text style={{
                 fontSize: 12,
                 color: COLORS.textMuted,
-                textAlign: 'center'
+                textAlign: 'center',
+                marginTop: 8
               }}>
                 Livres totaux
               </Text>
             </View>
             <View style={{ alignItems: 'center' }}>
-              <Text style={{
-                fontSize: 24,
-                fontWeight: 'bold',
-                color: COLORS.success
-              }}>
-                ✅
-              </Text>
+              <Ionicons name="checkmark-circle" size={28} color={COLORS.success} />
               <Text style={{
                 fontSize: 12,
                 color: COLORS.textMuted,
-                textAlign: 'center'
+                textAlign: 'center',
+                marginTop: 8
               }}>
                 Disponibles
               </Text>
             </View>
             <View style={{ alignItems: 'center' }}>
-              <Text style={{
-                fontSize: 24,
-                fontWeight: 'bold',
-                color: COLORS.warning
-              }}>
-                📖
-              </Text>
+              <Ionicons name="book" size={28} color={COLORS.warning} />
               <Text style={{
                 fontSize: 12,
                 color: COLORS.textMuted,
-                textAlign: 'center'
+                textAlign: 'center',
+                marginTop: 8
               }}>
                 Empruntés
               </Text>
@@ -245,7 +230,7 @@ const ManageBooksMainScreen = ({ navigation }) => {
             flex: 1,
             lineHeight: 18
           }}>
-            💡 Vous pouvez enrichir automatiquement vos livres avec les données Google Books
+            Vous pouvez enrichir automatiquement vos livres avec les données Google Books
           </Text>
         </View>
       </View>
@@ -275,8 +260,8 @@ const MainTabNavigator = () => {
       screenOptions={({ route }) => ({
         headerShown: false,
         tabBarStyle: {
-          backgroundColor: COLORS.background,
-          borderTopColor: COLORS.surface,
+          backgroundColor: COLORS.surface,
+          borderTopColor: COLORS.surfaceLight,
           borderTopWidth: 1,
           height: 85,
           paddingBottom: 15,
@@ -290,22 +275,33 @@ const MainTabNavigator = () => {
         },
         tabBarActiveTintColor: COLORS.accent,
         tabBarInactiveTintColor: COLORS.textMuted,
-        tabBarIcon: ({ focused, color, size }) => {
+        tabBarIcon: ({ focused, color }) => {
           let iconName;
 
           if (route.name === ROUTES.BOOK_LIST) {
-            iconName = focused ? 'home' : 'home-outline';
+            iconName = focused ? 'book' : 'book-outline';
           } else if (route.name === ROUTES.BORROWED_BOOKS) {
-            iconName = focused ? 'library' : 'library-outline';
+            iconName = focused ? 'bookmarks' : 'bookmarks-outline';
           } else if (route.name === ROUTES.SCAN) {
-            iconName = focused ? 'scan' : 'scan-outline';
+            iconName = focused ? 'scan-circle' : 'scan-circle-outline';
           } else if (route.name === 'ManageBooks') {
-            iconName = focused ? 'create' : 'create-outline';
+            iconName = focused ? 'library' : 'library-outline';
           } else if (route.name === ROUTES.PROFILE) {
-            iconName = focused ? 'person' : 'person-outline';
+            iconName = focused ? 'person-circle' : 'person-circle-outline';
           }
 
-          return <Ionicons name={iconName} size={24} color={color} />;
+          return (
+            <View style={{
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: 50,
+              height: 50,
+              borderRadius: 25,
+              backgroundColor: focused ? color + '15' : 'transparent',
+            }}>
+              <Ionicons name={iconName} size={26} color={color} />
+            </View>
+          );
         },
       })}
     >

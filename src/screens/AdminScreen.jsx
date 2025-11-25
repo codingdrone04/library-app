@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  View, 
-  Text, 
-  StyleSheet, 
-  ScrollView, 
-  TouchableOpacity, 
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
   Alert,
   ActivityIndicator,
   FlatList
@@ -16,7 +15,7 @@ import { COLORS, SPACING } from '../constants';
 import { globalStyles } from '../styles/globalStyles';
 
 const AdminScreen = ({ navigation }) => {
-  const { user, isAdmin } = useAuth();
+  const { isAdmin } = useAuth();
   const [loading, setLoading] = useState(false);
   const [stats, setStats] = useState(null);
   const [users, setUsers] = useState([]);
@@ -140,9 +139,85 @@ const AdminScreen = ({ navigation }) => {
     );
   };
 
-  const renderStats = () => (
+  const renderUserItem = ({ item }) => (
+    <View style={styles.userCard}>
+      <View style={styles.userInfo}>
+        <Text style={styles.userName}>
+          {item.firstname} {item.lastname}
+        </Text>
+        <Text style={styles.userDetails}>
+          @{item.username} • {item.email}
+        </Text>
+        <View style={[styles.roleBadge, {
+          backgroundColor: item.role === 'admin'
+            ? COLORS.purple + '20'
+            : item.role === 'librarian'
+              ? COLORS.orange + '20'
+              : COLORS.primary + '20'
+        }]}>
+          <Ionicons
+            name={item.role === 'admin' ? 'shield-checkmark' : item.role === 'librarian' ? 'book' : 'person'}
+            size={10}
+            color={item.role === 'admin' ? COLORS.purple : item.role === 'librarian' ? COLORS.orange : COLORS.primary}
+            style={{ marginRight: 4 }}
+          />
+          <Text style={[styles.roleText, {
+            color: item.role === 'admin' ? COLORS.purple : item.role === 'librarian' ? COLORS.orange : COLORS.primary
+          }]}>
+            {item.role}
+          </Text>
+        </View>
+      </View>
+      <TouchableOpacity
+        style={styles.quickBorrowBtn}
+        onPress={() => {
+          const availableBooks = books.filter(b => b.status === 'available');
+          if (availableBooks.length === 0) {
+            Alert.alert('Aucun livre disponible');
+            return;
+          }
+          handleQuickBorrow(availableBooks[0], item);
+        }}
+      >
+        <Ionicons name="add" size={20} color={COLORS.primary} />
+      </TouchableOpacity>
+    </View>
+  );
+
+  const renderLoanItem = ({ item }) => (
+    <View style={styles.loanCard}>
+      <View style={styles.loanInfo}>
+        <Text style={styles.loanTitle}>{item.book_title}</Text>
+        <Text style={styles.loanUser}>
+          {item.user.firstname} {item.user.lastname}
+        </Text>
+        <Text style={styles.loanDate}>
+          Retour: {new Date(item.due_date).toLocaleDateString()}
+        </Text>
+        <View style={[styles.statusBadge, {
+          backgroundColor: item.status === 'active' ? COLORS.warning + '20' : COLORS.success + '20'
+        }]}>
+          <Text style={[styles.statusText, {
+            color: item.status === 'active' ? COLORS.warning : COLORS.success
+          }]}>
+            {item.status}
+          </Text>
+        </View>
+      </View>
+      {item.status === 'active' && (
+        <TouchableOpacity
+          style={styles.returnBtn}
+          onPress={() => handleForceReturn(item)}
+        >
+          <Ionicons name="checkmark" size={20} color={COLORS.success} />
+        </TouchableOpacity>
+      )}
+    </View>
+  );
+
+  const renderStatsHeader = () => (
     <View style={styles.section}>
-      <Text style={styles.sectionTitle}>📊 Statistiques</Text>
+      <Text style={styles.sectionTitle}>Statistiques</Text>
       {stats && (
         <View style={styles.statsGrid}>
           <View style={styles.statCard}>
@@ -167,91 +242,6 @@ const AdminScreen = ({ navigation }) => {
           </View>
         </View>
       )}
-    </View>
-  );
-
-  const renderUsers = () => (
-    <View style={styles.section}>
-      <Text style={styles.sectionTitle}>👥 Utilisateurs ({users.length})</Text>
-      <FlatList
-        data={users}
-        keyExtractor={(item) => item.id.toString()}
-        renderItem={({ item }) => (
-          <View style={styles.userCard}>
-            <View style={styles.userInfo}>
-              <Text style={styles.userName}>
-                {item.firstname} {item.lastname}
-              </Text>
-              <Text style={styles.userDetails}>
-                @{item.username} • {item.email}
-              </Text>
-              <View style={[styles.roleBadge, { 
-                backgroundColor: item.role === 'admin' ? COLORS.error + '20' : COLORS.primary + '20'
-              }]}>
-                <Text style={[styles.roleText, { 
-                  color: item.role === 'admin' ? COLORS.error : COLORS.primary
-                }]}>
-                  {item.role}
-                </Text>
-              </View>
-            </View>
-            <TouchableOpacity 
-              style={styles.quickBorrowBtn}
-              onPress={() => {
-                const availableBooks = books.filter(b => b.status === 'available');
-                if (availableBooks.length === 0) {
-                  Alert.alert('Aucun livre disponible');
-                  return;
-                }
-                // Prendre le premier livre disponible pour test
-                handleQuickBorrow(availableBooks[0], item);
-              }}
-            >
-              <Ionicons name="add" size={20} color={COLORS.primary} />
-            </TouchableOpacity>
-          </View>
-        )}
-      />
-    </View>
-  );
-
-  const renderLoans = () => (
-    <View style={styles.section}>
-      <Text style={styles.sectionTitle}>📚 Emprunts ({loans.length})</Text>
-      <FlatList
-        data={loans}
-        keyExtractor={(item) => item.id.toString()}
-        renderItem={({ item }) => (
-          <View style={styles.loanCard}>
-            <View style={styles.loanInfo}>
-              <Text style={styles.loanTitle}>{item.book_title}</Text>
-              <Text style={styles.loanUser}>
-                {item.user.firstname} {item.user.lastname}
-              </Text>
-              <Text style={styles.loanDate}>
-                Retour: {new Date(item.due_date).toLocaleDateString()}
-              </Text>
-              <View style={[styles.statusBadge, {
-                backgroundColor: item.status === 'active' ? COLORS.warning + '20' : COLORS.success + '20'
-              }]}>
-                <Text style={[styles.statusText, {
-                  color: item.status === 'active' ? COLORS.warning : COLORS.success
-                }]}>
-                  {item.status}
-                </Text>
-              </View>
-            </View>
-            {item.status === 'active' && (
-              <TouchableOpacity 
-                style={styles.returnBtn}
-                onPress={() => handleForceReturn(item)}
-              >
-                <Ionicons name="checkmark" size={20} color={COLORS.success} />
-              </TouchableOpacity>
-            )}
-          </View>
-        )}
-      />
     </View>
   );
 
@@ -292,8 +282,20 @@ const AdminScreen = ({ navigation }) => {
     );
   }
 
-  return (
-    <View style={globalStyles.container}>
+  const getActiveData = () => {
+    if (activeTab === 'users') return users;
+    if (activeTab === 'loans') return loans;
+    return [];
+  };
+
+  const renderItem = ({ item }) => {
+    if (activeTab === 'users') return renderUserItem({ item });
+    if (activeTab === 'loans') return renderLoanItem({ item });
+    return null;
+  };
+
+  const renderListHeader = () => (
+    <>
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
@@ -307,11 +309,30 @@ const AdminScreen = ({ navigation }) => {
 
       {renderTabs()}
 
-      <ScrollView style={styles.content}>
-        {activeTab === 'stats' && renderStats()}
-        {activeTab === 'users' && renderUsers()}
-        {activeTab === 'loans' && renderLoans()}
-      </ScrollView>
+      {activeTab === 'stats' && renderStatsHeader()}
+      {activeTab === 'users' && (
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Utilisateurs ({users.length})</Text>
+        </View>
+      )}
+      {activeTab === 'loans' && (
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Emprunts ({loans.length})</Text>
+        </View>
+      )}
+    </>
+  );
+
+  return (
+    <View style={globalStyles.container}>
+      <FlatList
+        data={getActiveData()}
+        renderItem={renderItem}
+        keyExtractor={(item) => item.id.toString()}
+        ListHeaderComponent={renderListHeader}
+        contentContainerStyle={styles.content}
+        showsVerticalScrollIndicator={false}
+      />
     </View>
   );
 };
@@ -354,8 +375,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   content: {
-    flex: 1,
-    marginTop: SPACING.lg,
+    paddingBottom: SPACING.xl,
   },
   section: {
     paddingHorizontal: SPACING.containerPadding,
@@ -410,13 +430,17 @@ const styles = StyleSheet.create({
   },
   roleBadge: {
     alignSelf: 'flex-start',
-    paddingHorizontal: SPACING.sm,
-    paddingVertical: SPACING.xs,
-    borderRadius: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: SPACING.md,
+    paddingVertical: SPACING.xs + 2,
+    borderRadius: 16,
   },
   roleText: {
-    fontSize: 10,
-    fontWeight: '600',
+    fontSize: 11,
+    fontWeight: '700',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
   quickBorrowBtn: {
     backgroundColor: COLORS.primary + '20',
