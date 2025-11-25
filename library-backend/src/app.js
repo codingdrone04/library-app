@@ -23,9 +23,10 @@ app.use(helmet());
 app.use(rateLimiter);
 
 // CORS configuration
+const corsOrigin = process.env.CORS_ORIGIN || '*';
 const corsOptions = {
-  origin: process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN.split(',') : '*',
-  credentials: true,
+  origin: corsOrigin === '*' ? '*' : corsOrigin.split(','),
+  credentials: corsOrigin !== '*', // credentials ne marche pas avec origin: '*'
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'x-auth-token'],
 };
