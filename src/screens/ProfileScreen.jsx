@@ -11,11 +11,13 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
 import { COLORS, SPACING, USER_ROLES } from '../constants';
 import { globalStyles } from '../styles/globalStyles';
 
 const ProfileScreen = ({ navigation }) => {
   const { user, logout, isLibrarian } = useAuth();
+  const { isDarkMode, toggleTheme } = useTheme();
   const [notificationsEnabled, setNotificationsEnabled] = useState(
     user?.notifications_enabled || false
   );
@@ -161,7 +163,26 @@ const ProfileScreen = ({ navigation }) => {
     return (
       <View style={styles.preferencesSection}>
         <Text style={styles.sectionTitle}>Préférences</Text>
-        
+
+        {/* Dark Mode */}
+        <View style={styles.preferenceItem}>
+          <View style={styles.preferenceInfo}>
+            <Ionicons name={isDarkMode ? "moon" : "sunny"} size={20} color={COLORS.textSecondary} />
+            <View style={styles.preferenceText}>
+              <Text style={styles.preferenceTitle}>Mode sombre</Text>
+              <Text style={styles.preferenceDescription}>
+                Activer le thème sombre
+              </Text>
+            </View>
+          </View>
+          <Switch
+            value={isDarkMode}
+            onValueChange={toggleTheme}
+            trackColor={{ false: COLORS.surface, true: COLORS.primary + '50' }}
+            thumbColor={isDarkMode ? COLORS.primary : COLORS.textMuted}
+          />
+        </View>
+
         {/* Notifications */}
         <View style={styles.preferenceItem}>
           <View style={styles.preferenceInfo}>
