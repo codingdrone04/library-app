@@ -5,6 +5,7 @@ function createTestBook(overrides = {}) {
       description: 'Description test',
       status: 'available',
       library: {
+        library_id: 'test-library-1',
         location: 'A-1',
         condition: 'good',
         librarian: 'admin'
