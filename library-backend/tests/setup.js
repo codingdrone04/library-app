@@ -6,16 +6,23 @@ let mongod;
 let sequelizeInstance;
 let isSetupComplete = false;
 
-const mongoConfig = {
+const PREFERRED_MONGO_VERSIONS = [
+  process.env.MONGO_BINARY_VERSION,
+  '6.0.8',
+  '6.0.7',
+  '5.0.14'
+].filter(Boolean);
+
+const getMongoConfig = (version) => ({
   binary: {
-    version: '6.0.9',
+    version,
     downloadDir: './node_modules/.cache/mongodb-memory-server',
   },
   instance: {
     storageEngine: 'wiredTiger',
     dbName: 'library-test-' + Date.now(),
   }
-};
+});
 
 const setupDatabase = async () => {
   try {
@@ -27,15 +34,36 @@ const setupDatabase = async () => {
     console.log('🚀 [SETUP] Démarrage des bases de données de test...');
     
     console.log('📚 [SETUP] Configuration MongoDB Memory Server...');
-    
+
     if (mongoose.connection.readyState !== 0) {
       console.log('🔄 [SETUP] Fermeture connexion MongoDB existante...');
       await mongoose.disconnect();
     }
 
-    mongod = await MongoMemoryServer.create(mongoConfig);
+    let lastError = null;
+    for (const version of PREFERRED_MONGO_VERSIONS) {
+      try {
+        console.log(`🔄 [SETUP] Tentative avec MongoDB version ${version}...`);
+        mongod = await MongoMemoryServer.create(getMongoConfig(version));
+        const mongoUri = mongod.getUri();
+        console.log('📊 [SETUP] MongoDB Memory Server URI:', mongoUri);
+        lastError = null;
+        break;
+      } catch (error) {
+        lastError = error;
+        console.warn(`⚠️ [SETUP] Échec avec version ${version}:`, error.message);
+        if (mongod) {
+          try { await mongod.stop(); } catch (e) {}
+          mongod = null;
+        }
+      }
+    }
+
+    if (lastError) {
+      throw new Error(`Failed to start MongoDB Memory Server with any version: ${lastError.message}`);
+    }
+
     const mongoUri = mongod.getUri();
-    console.log('📊 [SETUP] MongoDB Memory Server URI:', mongoUri);
 
     await mongoose.connect(mongoUri, {
       maxPoolSize: 5,
