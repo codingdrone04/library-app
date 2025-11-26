@@ -3,9 +3,8 @@ process.env.JWT_SECRET = 'test-jwt-secret-key-for-testing-only-very-long-and-sec
 process.env.JWT_EXPIRES_IN = '1h';
 
 process.env.MONGODB_URI = 'mongodb://localhost:27017/library_test_memory';
-process.env.POSTGRES_DATABASE = 'library_test';
-process.env.POSTGRES_USER = 'test';
-process.env.POSTGRES_PASSWORD = 'test';
+// PostgreSQL - will be created dynamically by test setup
+// Use current user for local PostgreSQL connection
 process.env.POSTGRES_HOST = 'localhost';
 process.env.POSTGRES_PORT = '5432';
 

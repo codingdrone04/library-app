@@ -66,7 +66,7 @@ router.post('/login', async (req, res) => {
 
 router.post('/register', async (req, res) => {
   try {
-    const { firstname, lastname, username, email, password, role = 'user' } = req.body;
+    const { firstname, lastname, username, email, password, role = 'user', library_id = 1 } = req.body;
 
     if (!firstname || !lastname || !username || !email || !password) {
       return res.status(400).json({
@@ -93,7 +93,8 @@ router.post('/register', async (req, res) => {
       username,
       email,
       password_hash: password,
-      role: ['user', 'librarian', 'admin'].includes(role) ? role : 'user'
+      role: ['user', 'librarian', 'admin'].includes(role) ? role : 'user',
+      library_id
     });
 
     const token = jwt.sign(

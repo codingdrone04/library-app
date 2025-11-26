@@ -5,6 +5,7 @@ function createTestBook(overrides = {}) {
       description: 'Description test',
       status: 'available',
       library: {
+        library_id: 1,
         location: 'A-1',
         condition: 'good',
         librarian: 'admin'
@@ -21,6 +22,7 @@ function createTestBook(overrides = {}) {
       email: 'test@example.com',
       password_hash: 'motdepassehashe',
       role: 'user',
+      library_id: 1,
       ...overrides
     };
   }
