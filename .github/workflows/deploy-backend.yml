@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - master
+      - dev
     paths:
       - 'library-backend/**'
   workflow_dispatch:
@@ -36,7 +37,7 @@ jobs:
     name: Deploy to Server
     needs: test
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/master'
+    if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/dev'
 
     steps:
       - name: Deploy via SSH
@@ -48,7 +49,7 @@ jobs:
           port: 34343
           script: |
             cd ~/UNCOVE/SAMOUEL/library-app
-            git pull origin master
+            git pull origin ${{ github.ref_name }}
             cd library-backend
             docker compose down
             docker compose up -d --build
