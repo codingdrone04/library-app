@@ -1,0 +1,55 @@
+name: Deploy Backend to Production
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - 'library-backend/**'
+  workflow_dispatch:
+
+jobs:
+  test:
+    name: Run Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '23'
+          cache: 'npm'
+          cache-dependency-path: library-backend/package-lock.json
+
+      - name: Install dependencies
+        working-directory: ./library-backend
+        run: npm ci
+
+      - name: Run tests
+        working-directory: ./library-backend
+        run: npm test
+
+  deploy:
+    name: Deploy to Server
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/master'
+
+    steps:
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: artemis.erwansinck.com
+          username: esinck
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: 34343
+          script: |
+            cd ~/UNCOVE/SAMOUEL/library-app
+            git pull origin master
+            cd library-backend
+            docker compose down
+            docker compose up -d --build
+            echo "Deployment completed successfully!"
