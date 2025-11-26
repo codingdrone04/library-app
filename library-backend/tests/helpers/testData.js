@@ -22,6 +22,7 @@ function createTestBook(overrides = {}) {
       email: 'test@example.com',
       password_hash: 'motdepassehashe',
       role: 'user',
+      library_id: 1,
       ...overrides
     };
   }

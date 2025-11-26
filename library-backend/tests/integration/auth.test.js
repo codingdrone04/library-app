@@ -2,26 +2,41 @@ const request = require('supertest');
 const app = require('../../src/app');
 const { setupDatabase, teardownDatabase, getSequelizeInstance } = require('../setup');
 const createUserModel = require('../../src/models/User');
+const createLibraryModel = require('../../src/models/Library');
 
 describe('Authentication API Complete Tests', () => {
   let server;
   let User;
+  let Library;
   let sequelize;
 
   beforeAll(async () => {
     console.log('🔐 Setup Auth Tests...');
-    
+
     await setupDatabase();
-    
+
     sequelize = getSequelizeInstance();
+    Library = createLibraryModel(sequelize);
     User = createUserModel(sequelize);
-    
-    app.locals.models = { User };
-    
+
+    app.locals.models = { User, Library };
+
     await sequelize.sync({ force: true });
-    
+
+    // Create a test library for users to reference
+    await Library.create({
+      id: 1,
+      code: 'TESTLIB',
+      name: 'Test Library',
+      address: 'Test Address',
+      city: 'Test City',
+      phone: '123456789',
+      email: 'test@library.com',
+      description: 'Test library for integration tests'
+    });
+
     server = app.listen(0);
-    
+
     console.log('✅ Auth test environment ready');
   }, 60000);
 
@@ -38,12 +53,25 @@ describe('Authentication API Complete Tests', () => {
   }, 30000);
 
   beforeEach(async () => {
-    if (User) {
-      await User.destroy({ where: {}, truncate: true });
+    if (User && sequelize) {
+      // Recreate library first since users depend on it
+      await sequelize.sync({ force: true });
+
+      // Recreate the test library
+      await Library.create({
+        id: 1,
+        code: 'TESTLIB',
+        name: 'Test Library',
+        address: 'Test Address',
+        city: 'Test City',
+        phone: '123456789',
+        email: 'test@library.com',
+        description: 'Test library for integration tests'
+      });
     }
   });
 
-  describe('POST /api/auth/register', () => {
+  describe('POST /auth/register', () => {
     test('should register new user successfully', async () => {
       const userData = {
         firstname: 'Test',
@@ -54,7 +82,7 @@ describe('Authentication API Complete Tests', () => {
       };
 
       const response = await request(app)
-        .post('/api/auth/register')
+        .post('/auth/register')
         .send(userData);
 
       console.log('Registration response:', response.status, response.body);
@@ -75,7 +103,7 @@ describe('Authentication API Complete Tests', () => {
       };
 
       const response = await request(app)
-        .post('/api/auth/register')
+        .post('/auth/register')
         .send(userData);
 
       expect(response.status).toBe(201);
@@ -96,7 +124,7 @@ describe('Authentication API Complete Tests', () => {
       };
 
       await request(app)
-        .post('/api/auth/register')
+        .post('/auth/register')
         .send(userData)
         .expect(201);
 
@@ -106,7 +134,7 @@ describe('Authentication API Complete Tests', () => {
       };
 
       const response = await request(app)
-        .post('/api/auth/register')
+        .post('/auth/register')
         .send(duplicateUser);
 
       expect(response.status).toBe(409);
@@ -123,7 +151,7 @@ describe('Authentication API Complete Tests', () => {
       };
 
       await request(app)
-        .post('/api/auth/register')
+        .post('/auth/register')
         .send(userData)
         .expect(201);
 
@@ -133,7 +161,7 @@ describe('Authentication API Complete Tests', () => {
       };
 
       const response = await request(app)
-        .post('/api/auth/register')
+        .post('/auth/register')
         .send(duplicateUser);
 
       expect(response.status).toBe(409);
@@ -142,7 +170,7 @@ describe('Authentication API Complete Tests', () => {
 
     test('should validate required fields', async () => {
       const response = await request(app)
-        .post('/api/auth/register')
+        .post('/auth/register')
         .send({});
 
       expect(response.status).toBe(400);
@@ -159,7 +187,7 @@ describe('Authentication API Complete Tests', () => {
       };
 
       const response = await request(app)
-        .post('/api/auth/register')
+        .post('/auth/register')
         .send(userData);
 
       expect(response.status).toBe(400);
@@ -176,7 +204,7 @@ describe('Authentication API Complete Tests', () => {
       };
 
       const response = await request(app)
-        .post('/api/auth/register')
+        .post('/auth/register')
         .send(userData);
 
       expect(response.status).toBe(201);
@@ -194,7 +222,7 @@ describe('Authentication API Complete Tests', () => {
       };
 
       const response = await request(app)
-        .post('/api/auth/register')
+        .post('/auth/register')
         .send(userData);
 
       expect(response.status).toBe(201);
@@ -202,10 +230,10 @@ describe('Authentication API Complete Tests', () => {
     });
   });
 
-  describe('POST /api/auth/login', () => {
+  describe('POST /auth/login', () => {
     beforeEach(async () => {
       await request(app)
-        .post('/api/auth/register')
+        .post('/auth/register')
         .send({
           firstname: 'Login',
           lastname: 'Test',
@@ -217,7 +245,7 @@ describe('Authentication API Complete Tests', () => {
 
     test('should login with valid credentials', async () => {
       const response = await request(app)
-        .post('/api/auth/login')
+        .post('/auth/login')
         .send({
           username: 'logintest',
           password: 'password123'
@@ -233,7 +261,7 @@ describe('Authentication API Complete Tests', () => {
 
     test('should login with email instead of username', async () => {
       const response = await request(app)
-        .post('/api/auth/login')
+        .post('/auth/login')
         .send({
           username: 'login@example.com',
           password: 'password123'
@@ -246,7 +274,7 @@ describe('Authentication API Complete Tests', () => {
 
     test('should reject invalid password', async () => {
       const response = await request(app)
-        .post('/api/auth/login')
+        .post('/auth/login')
         .send({
           username: 'logintest',
           password: 'wrongpassword'
@@ -258,7 +286,7 @@ describe('Authentication API Complete Tests', () => {
 
     test('should reject non-existent user', async () => {
       const response = await request(app)
-        .post('/api/auth/login')
+        .post('/auth/login')
         .send({
           username: 'nonexistent',
           password: 'password123'
@@ -270,7 +298,7 @@ describe('Authentication API Complete Tests', () => {
 
     test('should require both username and password', async () => {
       const response = await request(app)
-        .post('/api/auth/login')
+        .post('/auth/login')
         .send({
           username: 'logintest'
         });
@@ -281,7 +309,7 @@ describe('Authentication API Complete Tests', () => {
 
     test('should update last_login timestamp', async () => {
       const response = await request(app)
-        .post('/api/auth/login')
+        .post('/auth/login')
         .send({
           username: 'logintest',
           password: 'password123'
@@ -294,12 +322,12 @@ describe('Authentication API Complete Tests', () => {
     });
   });
 
-  describe('GET /api/auth/me', () => {
+  describe('GET /auth/me', () => {
     let userToken;
 
     beforeEach(async () => {
       const registerResponse = await request(app)
-        .post('/api/auth/register')
+        .post('/auth/register')
         .send({
           firstname: 'Me',
           lastname: 'Test',
@@ -313,7 +341,7 @@ describe('Authentication API Complete Tests', () => {
 
     test('should return user data with valid token', async () => {
       const response = await request(app)
-        .get('/api/auth/me')
+        .get('/auth/me')
         .set('Authorization', `Bearer ${userToken}`);
 
       console.log('Me response:', response.status, response.body);
@@ -325,7 +353,7 @@ describe('Authentication API Complete Tests', () => {
 
     test('should reject request without token', async () => {
       const response = await request(app)
-        .get('/api/auth/me');
+        .get('/auth/me');
 
       expect(response.status).toBe(401);
       expect(response.body.success).toBe(false);
@@ -333,7 +361,7 @@ describe('Authentication API Complete Tests', () => {
 
     test('should reject invalid token', async () => {
       const response = await request(app)
-        .get('/api/auth/me')
+        .get('/auth/me')
         .set('Authorization', 'Bearer invalid-token');
 
       expect(response.status).toBe(401);
@@ -351,7 +379,7 @@ describe('Authentication API Complete Tests', () => {
       await new Promise(resolve => setTimeout(resolve, 10));
 
       const response = await request(app)
-        .get('/api/auth/me')
+        .get('/auth/me')
         .set('Authorization', `Bearer ${expiredToken}`);
 
       expect(response.status).toBe(401);
@@ -367,7 +395,7 @@ describe('Authentication API Complete Tests', () => {
       );
 
       const response = await request(app)
-        .get('/api/auth/me')
+        .get('/auth/me')
         .set('Authorization', `Bearer ${fakeToken}`);
 
       expect(response.status).toBe(401);
@@ -381,7 +409,7 @@ describe('Authentication API Complete Tests', () => {
       );
 
       const response = await request(app)
-        .get('/api/auth/me')
+        .get('/auth/me')
         .set('Authorization', `Bearer ${userToken}`);
 
       expect(response.status).toBe(401);
@@ -392,7 +420,7 @@ describe('Authentication API Complete Tests', () => {
   describe('JWT Token Security', () => {
     test('tokens should have proper structure', async () => {
       const response = await request(app)
-        .post('/api/auth/register')
+        .post('/auth/register')
         .send({
           firstname: 'Token',
           lastname: 'Test',
@@ -414,7 +442,7 @@ describe('Authentication API Complete Tests', () => {
 
     test('tokens should expire', async () => {
       const response = await request(app)
-        .post('/api/auth/register')
+        .post('/auth/register')
         .send({
           firstname: 'Expire',
           lastname: 'Test',
