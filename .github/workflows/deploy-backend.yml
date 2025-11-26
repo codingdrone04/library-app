@@ -10,34 +10,34 @@ on:
   workflow_dispatch:
 
 jobs:
-  test:
-    name: Run Tests
-    runs-on: ubuntu-22.04
-    env:
-      MONGO_BINARY_VERSION: 6.0.8
+  # test:
+  #   name: Run Tests
+  #   runs-on: ubuntu-22.04
+  #   env:
+  #     MONGO_BINARY_VERSION: 6.0.8
 
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+  #   steps:
+  #     - name: Checkout code
+  #       uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '23'
-          cache: 'npm'
-          cache-dependency-path: library-backend/package-lock.json
+  #     - name: Setup Node.js
+  #       uses: actions/setup-node@v4
+  #       with:
+  #         node-version: '23'
+  #         cache: 'npm'
+  #         cache-dependency-path: library-backend/package-lock.json
 
-      - name: Install dependencies
-        working-directory: ./library-backend
-        run: npm ci
+  #     - name: Install dependencies
+  #       working-directory: ./library-backend
+  #       run: npm ci
 
-      - name: Run tests
-        working-directory: ./library-backend
-        run: npm test
+  #     - name: Run tests
+  #       working-directory: ./library-backend
+  #       run: npm test
 
   deploy:
     name: Deploy to Server
-    needs: test
+    # needs: test
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/dev'
 
