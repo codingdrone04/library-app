@@ -1,97 +1,97 @@
 const DARK_THEME = {
-  // Primary colors - Plus vifs et modernes
-  primary: '#6366F1',        // Indigo vibrant
-  primaryDark: '#4F46E5',    // Indigo foncé
-  primaryLight: '#818CF8',   // Indigo clair
-  accent: '#F59E0B',         // Ambre/Or chaud
-  accentLight: '#FCD34D',    // Jaune doux
+  // Primary colors - Brighter and more modern
+  primary: '#6366F1',        // Vibrant indigo
+  primaryDark: '#4F46E5',    // Dark indigo
+  primaryLight: '#818CF8',   // Light indigo
+  accent: '#F59E0B',         // Amber/Warm gold
+  accentLight: '#FCD34D',    // Soft yellow
 
-  // Background colors - Plus doux, moins gris
-  background: '#0F172A',     // Bleu nuit profond (slate-900)
-  surface: '#1E293B',        // Bleu ardoise (slate-800)
-  surfaceLight: '#334155',   // Ardoise moyen (slate-700)
-  card: '#1E293B',          // Pour les cartes
+  // Background colors - Softer, less gray
+  background: '#0F172A',     // Deep night blue (slate-900)
+  surface: '#1E293B',        // Slate blue (slate-800)
+  surfaceLight: '#334155',   // Medium slate (slate-700)
+  card: '#1E293B',          // For cards
 
-  // Text colors - Meilleur contraste
-  textPrimary: '#F1F5F9',    // Presque blanc avec teinte bleue
-  textSecondary: '#CBD5E1',  // Gris bleuté clair
-  textMuted: '#94A3B8',      // Gris bleuté moyen
-  textPlaceholder: '#64748B', // Gris ardoise
+  // Text colors - Better contrast
+  textPrimary: '#F1F5F9',    // Almost white with blue tint
+  textSecondary: '#CBD5E1',  // Light blue-gray
+  textMuted: '#94A3B8',      // Medium blue-gray
+  textPlaceholder: '#64748B', // Slate gray
 
-  // Status colors - Plus vivants
-  success: '#10B981',        // Émeraude vif
-  warning: '#F59E0B',        // Ambre
-  error: '#EF4444',          // Rouge vif mais pas agressif
-  info: '#3B82F6',           // Bleu vif
+  // Status colors - More vibrant
+  success: '#10B981',        // Bright emerald
+  warning: '#F59E0B',        // Amber
+  error: '#EF4444',          // Bright red but not aggressive
+  info: '#3B82F6',           // Bright blue
 
   // Semantic colors
-  available: '#10B981',      // Vert émeraude
-  borrowed: '#F59E0B',       // Ambre
-  overdue: '#EF4444',        // Rouge
+  available: '#10B981',      // Emerald green
+  borrowed: '#F59E0B',       // Amber
+  overdue: '#EF4444',        // Red
 
-  // Navigation - Plus moderne
-  navBackground: '#1E293B',  // Même que surface
+  // Navigation - More modern
+  navBackground: '#1E293B',  // Same as surface
   navBorder: '#334155',      // surfaceLight
-  navActive: '#6366F1',      // Primary au lieu d'accent
-  navInactive: '#64748B',    // Plus clair que avant
+  navActive: '#6366F1',      // Primary instead of accent
+  navInactive: '#64748B',    // Lighter than before
 
-  // Accents supplémentaires pour plus de vie
-  purple: '#A855F7',         // Violet
-  pink: '#EC4899',           // Rose
+  // Additional accents for more vibrancy
+  purple: '#A855F7',         // Purple
+  pink: '#EC4899',           // Pink
   teal: '#14B8A6',          // Turquoise
-  orange: '#F97316',        // Orange vif
+  orange: '#F97316',        // Bright orange
 
   // Shadow
   shadow: '#000000',
 
   // Transparent
   transparent: 'transparent',
-  overlay: 'rgba(15, 23, 42, 0.75)', // Plus opaque, teinte bleue
+  overlay: 'rgba(15, 23, 42, 0.75)', // More opaque, blue tint
   overlayLight: 'rgba(30, 41, 59, 0.5)',
 };
 
 const LIGHT_THEME = {
   // Primary colors
-  primary: '#6366F1',        // Indigo vibrant
-  primaryDark: '#4F46E5',    // Indigo foncé
-  primaryLight: '#A5B4FC',   // Indigo très clair
-  accent: '#F59E0B',         // Ambre/Or chaud
-  accentLight: '#FCD34D',    // Jaune doux
+  primary: '#6366F1',        // Vibrant indigo
+  primaryDark: '#4F46E5',    // Dark indigo
+  primaryLight: '#A5B4FC',   // Very light indigo
+  accent: '#F59E0B',         // Amber/Warm gold
+  accentLight: '#FCD34D',    // Soft yellow
 
   // Background colors
-  background: '#F8FAFC',     // Gris très clair bleuté (slate-50)
-  surface: '#FFFFFF',        // Blanc pur
-  surfaceLight: '#F1F5F9',   // Gris clair bleuté (slate-100)
-  card: '#FFFFFF',          // Pour les cartes
+  background: '#F8FAFC',     // Very light blue-gray (slate-50)
+  surface: '#FFFFFF',        // Pure white
+  surfaceLight: '#F1F5F9',   // Light blue-gray (slate-100)
+  card: '#FFFFFF',          // For cards
 
   // Text colors
-  textPrimary: '#0F172A',    // Bleu nuit profond
-  textSecondary: '#475569',  // Gris ardoise foncé
-  textMuted: '#64748B',      // Gris ardoise moyen
-  textPlaceholder: '#94A3B8', // Gris ardoise clair
+  textPrimary: '#0F172A',    // Deep night blue
+  textSecondary: '#475569',  // Dark slate gray
+  textMuted: '#64748B',      // Medium slate gray
+  textPlaceholder: '#94A3B8', // Light slate gray
 
   // Status colors
-  success: '#10B981',        // Émeraude vif
-  warning: '#F59E0B',        // Ambre
-  error: '#EF4444',          // Rouge vif
-  info: '#3B82F6',           // Bleu vif
+  success: '#10B981',        // Bright emerald
+  warning: '#F59E0B',        // Amber
+  error: '#EF4444',          // Bright red
+  info: '#3B82F6',           // Bright blue
 
   // Semantic colors
-  available: '#10B981',      // Vert émeraude
-  borrowed: '#F59E0B',       // Ambre
-  overdue: '#EF4444',        // Rouge
+  available: '#10B981',      // Emerald green
+  borrowed: '#F59E0B',       // Amber
+  overdue: '#EF4444',        // Red
 
   // Navigation
-  navBackground: '#FFFFFF',  // Blanc
-  navBorder: '#E2E8F0',      // Gris bleuté clair (slate-200)
+  navBackground: '#FFFFFF',  // White
+  navBorder: '#E2E8F0',      // Light blue-gray (slate-200)
   navActive: '#6366F1',      // Primary
-  navInactive: '#94A3B8',    // Gris ardoise clair
+  navInactive: '#94A3B8',    // Light slate gray
 
-  // Accents supplémentaires
-  purple: '#A855F7',         // Violet
-  pink: '#EC4899',           // Rose
+  // Additional accents
+  purple: '#A855F7',         // Purple
+  pink: '#EC4899',           // Pink
   teal: '#14B8A6',          // Turquoise
-  orange: '#F97316',        // Orange vif
+  orange: '#F97316',        // Bright orange
 
   // Shadow
   shadow: '#64748B',

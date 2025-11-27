@@ -14,6 +14,7 @@ Library App is a multi-tenant library management system that allows managing mul
 - React Native Paper for UI
 - Axios for HTTP requests
 - AsyncStorage for local data
+- Expo FileSystem for image caching
 
 ### Backend
 - Express.js 4.18.2
@@ -36,6 +37,7 @@ Library App is a multi-tenant library management system that allows managing mul
 - Full-text search on books
 - Google Books API integration for enriching book data
 - Role-based navigation and permissions
+- **Image caching system** for offline access and improved performance (see [docs/IMAGE_CACHE.md](docs/IMAGE_CACHE.md))
 
 ## Quick Start
 
