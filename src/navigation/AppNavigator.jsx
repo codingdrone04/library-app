@@ -27,7 +27,7 @@ const Tab = createBottomTabNavigator();
 const LoadingScreen = () => (
   <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: COLORS.background }}>
     <ActivityIndicator size="large" color={COLORS.primary} />
-    <Text style={{ color: COLORS.textPrimary, marginTop: 16 }}>Chargement...</Text>
+    <Text style={{ color: COLORS.textPrimary, marginTop: 16 }}>Loading...</Text>
   </View>
 );
 
@@ -46,28 +46,28 @@ const AuthStack = () => (
   </Stack.Navigator>
 );
 
-// Écran principal de gestion des livres pour bibliothécaires
+// Main book management screen for librarians
 const ManageBooksMainScreen = ({ navigation }) => {
   const { user } = useAuth();
 
   const menuItems = [
     {
-      title: 'Ajouter un livre',
-      description: 'Ajouter un nouveau livre à la bibliothèque',
+      title: 'Add a book',
+      description: 'Add a new book to the library',
       icon: 'add-circle',
       color: COLORS.success,
       onPress: () => navigation.navigate('AddBookScreen')
     },
     {
-      title: 'Scanner un code-barres',
-      description: 'Scanner pour ajouter rapidement (bientôt)',
+      title: 'Scan a barcode',
+      description: 'Quick scan to add (coming soon)',
       icon: 'scan',
       color: COLORS.info,
       onPress: () => navigation.navigate(ROUTES.SCAN)
     },
     {
-      title: 'Gestion avancée',
-      description: 'Statistiques et administration',
+      title: 'Advanced management',
+      description: 'Statistics and administration',
       icon: 'settings',
       color: COLORS.accent,
       onPress: () => navigation.navigate('AdminScreen')
@@ -89,15 +89,15 @@ const ManageBooksMainScreen = ({ navigation }) => {
           letterSpacing: 2, 
           textAlign: 'center' 
         }}>
-          Gestion
+          Management
         </Text>
-        <Text style={{ 
-          fontSize: 16, 
-          color: COLORS.textSecondary, 
-          textAlign: 'center', 
-          marginTop: 8 
+        <Text style={{
+          fontSize: 16,
+          color: COLORS.textSecondary,
+          textAlign: 'center',
+          marginTop: 8
         }}>
-          Bonjour {user?.firstname}, que souhaitez-vous faire ?
+          Hello {user?.firstname}, what would you like to do?
         </Text>
       </View>
 
@@ -156,7 +156,7 @@ const ManageBooksMainScreen = ({ navigation }) => {
           </TouchableOpacity>
         ))}
 
-        {/* Statistiques rapides */}
+        {/* Quick stats */}
         <View style={{
           backgroundColor: COLORS.surface,
           borderRadius: 12,
@@ -169,7 +169,7 @@ const ManageBooksMainScreen = ({ navigation }) => {
             color: COLORS.textPrimary,
             marginBottom: 16
           }}>
-            Aperçu rapide
+            Quick overview
           </Text>
           <View style={{
             flexDirection: 'row',
@@ -183,7 +183,7 @@ const ManageBooksMainScreen = ({ navigation }) => {
                 textAlign: 'center',
                 marginTop: 8
               }}>
-                Livres totaux
+                Total books
               </Text>
             </View>
             <View style={{ alignItems: 'center' }}>
@@ -194,7 +194,7 @@ const ManageBooksMainScreen = ({ navigation }) => {
                 textAlign: 'center',
                 marginTop: 8
               }}>
-                Disponibles
+                Available
               </Text>
             </View>
             <View style={{ alignItems: 'center' }}>
@@ -205,13 +205,13 @@ const ManageBooksMainScreen = ({ navigation }) => {
                 textAlign: 'center',
                 marginTop: 8
               }}>
-                Empruntés
+                Borrowed
               </Text>
             </View>
           </View>
         </View>
 
-        {/* Note d'information */}
+        {/* Info note */}
         <View style={{
           backgroundColor: COLORS.info + '20',
           borderRadius: 12,
@@ -230,7 +230,7 @@ const ManageBooksMainScreen = ({ navigation }) => {
             flex: 1,
             lineHeight: 18
           }}>
-            Vous pouvez enrichir automatiquement vos livres avec les données Google Books
+            You can automatically enrich your books with Google Books data
           </Text>
         </View>
       </View>
@@ -238,7 +238,7 @@ const ManageBooksMainScreen = ({ navigation }) => {
   );
 };
 
-// Stack pour la gestion des livres (bibliothécaires)
+// Book management stack (librarians)
 const ManageBooksStack = () => (
   <Stack.Navigator
     screenOptions={{
@@ -305,38 +305,38 @@ const MainTabNavigator = () => {
         },
       })}
     >
-      <Tab.Screen 
-        name={ROUTES.BOOK_LIST} 
+      <Tab.Screen
+        name={ROUTES.BOOK_LIST}
         component={BookListScreen}
-        options={{ tabBarLabel: 'Accueil' }}
+        options={{ tabBarLabel: 'Home' }}
       />
-      <Tab.Screen 
-        name={ROUTES.BORROWED_BOOKS} 
+      <Tab.Screen
+        name={ROUTES.BORROWED_BOOKS}
         component={BorrowedBooksScreen}
-        options={{ tabBarLabel: 'Mes livres' }}
+        options={{ tabBarLabel: 'My Books' }}
       />
-      
-      {/* Onglets pour les bibliothécaires */}
+
+      {/* Tabs for librarians */}
       {isLibrarian() && (
         <>
-          <Tab.Screen 
-            name="ManageBooks" 
+          <Tab.Screen
+            name="ManageBooks"
             component={ManageBooksStack}
-            options={{ tabBarLabel: 'Gestion' }}
+            options={{ tabBarLabel: 'Manage' }}
           />
         </>
       )}
-      
-      <Tab.Screen 
-        name={ROUTES.PROFILE} 
+
+      <Tab.Screen
+        name={ROUTES.PROFILE}
         component={ProfileScreen}
-        options={{ tabBarLabel: 'Profil' }}
+        options={{ tabBarLabel: 'Profile' }}
       />
     </Tab.Navigator>
   );
 };
 
-// Stack principal de l'application
+// Main application stack
 const AppStack = () => (
   <Stack.Navigator
     screenOptions={{

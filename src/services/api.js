@@ -6,7 +6,7 @@ let localConfig = null;
 try {
   localConfig = require('../config/local').LOCAL_CONFIG;
 } catch (error) {
-  console.log('📍 Fichier config local non trouvé, utilisation auto-détection');
+  console.log('📍 Local config file not found, using auto-detection');
 }
 
 class ApiService {
@@ -26,16 +26,16 @@ class ApiService {
 
   determineBaseURL() {
     if (__DEV__) {
-      // Si localConfig existe, l'utiliser pour TOUTES les plateformes
+      // If localConfig exists, use it for ALL platforms
       if (localConfig?.API_HOST) {
         const port = localConfig.API_PORT ? `:${localConfig.API_PORT}` : '';
-        // Si c'est un domaine externe (contient un point), pas de /api (géré par reverse proxy)
-        // Sinon (localhost, IP), ajouter /api
+        // If it's an external domain (contains a dot), no /api (handled by reverse proxy)
+        // Otherwise (localhost, IP), add /api
         const apiSuffix = localConfig.API_HOST.includes('.') && !localConfig.API_HOST.match(/^\d/) ? '' : '/api';
         return `http://${localConfig.API_HOST}${port}${apiSuffix}`;
       }
 
-      // Sinon, auto-détection par plateforme
+      // Otherwise, auto-detect by platform
       if (Platform.OS === 'android') {
         const { manifest } = Constants;
         if (manifest?.debuggerHost) {
@@ -45,7 +45,7 @@ class ApiService {
 
         return 'http://10.0.2.2:3000/api';
       } else {
-        // iOS / Web en dev : localhost par défaut
+        // iOS / Web in dev: localhost by default
         return `http://localhost:3000/api`;
       }
     } else {
@@ -70,7 +70,7 @@ class ApiService {
       },
       (error) => {
         if (error.code === 'NETWORK_ERROR' || error.message === 'Network Error') {
-          console.error('❌ Connexion impossible au serveur:', this.baseURL);
+          console.error('❌ Unable to connect to server:', this.baseURL);
         } else {
           console.error('❌ API Error:', error.response?.data || error.message);
         }
@@ -83,20 +83,20 @@ class ApiService {
   formatError(error) {
     if (error.response) {
       return {
-        message: error.response.data?.error || error.response.data?.message || 'Erreur serveur',
+        message: error.response.data?.error || error.response.data?.message || 'Server error',
         status: error.response.status,
         data: error.response.data
       };
     } else if (error.request) {
       return {
-        message: `Impossible de se connecter au serveur (${this.baseURL}).`,
+        message: `Unable to connect to the server (${this.baseURL}).`,
         status: 0,
         network: true,
         baseURL: this.baseURL
       };
     } else {
       return {
-        message: error.message || 'Une erreur est survenue',
+        message: error.message || 'An error occurred',
         status: -1
       };
     }
@@ -108,7 +108,7 @@ class ApiService {
       const response = await this.api.get('/books', { params: options });
       return response.data.data || [];
     } catch (error) {
-      throw new Error(`Impossible de charger les livres: ${error.message}`);
+      throw new Error(`Unable to load books: ${error.message}`);
     }
   }
 
@@ -118,7 +118,7 @@ class ApiService {
       const response = await this.api.get('/books', { params });
       return response.data.data || [];
     } catch (error) {
-      throw new Error(`Recherche échouée: ${error.message}`);
+      throw new Error(`Search failed: ${error.message}`);
     }
   }
 
@@ -286,14 +286,14 @@ class ApiService {
       const response = await this.api.get('/books/stats');
       return {
         success: true,
-        message: 'Connexion API réussie',
+        message: 'API connection successful',
         stats: response.data.data,
         baseURL: this.baseURL
       };
     } catch (error) {
       return {
         success: false,
-        message: `Impossible de se connecter à l'API (${this.baseURL})`,
+        message: `Unable to connect to the API (${this.baseURL})`,
         error: error.message,
         baseURL: this.baseURL
       };

@@ -4,12 +4,12 @@ import { Platform } from 'react-native';
 
 const CACHE_KEY_PREFIX = '@image_cache_';
 const CACHE_INDEX_KEY = '@image_cache_index';
-const MAX_CACHE_SIZE_MB = 50; // Limite de 50MB pour le cache
+const MAX_CACHE_SIZE_MB = 50; // 50MB cache size limit
 const MAX_CACHE_SIZE_BYTES = MAX_CACHE_SIZE_MB * 1024 * 1024;
 
 /**
- * Service de gestion du cache d'images
- * Stocke les images localement pour un accès hors ligne
+ * Image cache management service
+ * Stores images locally for offline access
  */
 class ImageCacheService {
   constructor() {
@@ -18,7 +18,7 @@ class ImageCacheService {
   }
 
   /**
-   * Initialise le répertoire de cache
+   * Initialize the cache directory
    */
   async initializeCache() {
     try {
@@ -32,22 +32,22 @@ class ImageCacheService {
   }
 
   /**
-   * Génère une clé de cache à partir d'une URL
+   * Generate a cache key from a URL
    */
   _getCacheKey(url) {
-    // Utilise l'URL comme base pour la clé, en remplaçant les caractères non valides
+    // Use the URL as base for the key, replacing invalid characters
     return url.replace(/[^a-zA-Z0-9]/g, '_');
   }
 
   /**
-   * Récupère le chemin du fichier en cache
+   * Get the cached file path
    */
   _getCacheFilePath(cacheKey) {
     return `${this.cacheDir}${cacheKey}.jpg`;
   }
 
   /**
-   * Récupère l'index du cache (métadonnées)
+   * Retrieve the cache index (metadata)
    */
   async _getCacheIndex() {
     try {
@@ -60,7 +60,7 @@ class ImageCacheService {
   }
 
   /**
-   * Met à jour l'index du cache
+   * Update the cache index
    */
   async _updateCacheIndex(index) {
     try {
@@ -71,7 +71,7 @@ class ImageCacheService {
   }
 
   /**
-   * Calcule la taille totale du cache
+   * Calculate the total cache size
    */
   async _getCacheSize() {
     try {
@@ -84,21 +84,21 @@ class ImageCacheService {
   }
 
   /**
-   * Nettoie les anciennes entrées du cache si la taille dépasse la limite
+   * Clean up old cache entries if size exceeds the limit
    */
   async _cleanupCache() {
     try {
       const index = await this._getCacheIndex();
       const entries = Object.entries(index);
 
-      // Trie par date d'accès (plus ancien en premier)
+      // Sort by access date (oldest first)
       entries.sort((a, b) => (a[1].lastAccess || 0) - (b[1].lastAccess || 0));
 
       let currentSize = await this._getCacheSize();
 
-      // Supprime les anciennes entrées jusqu'à ce que la taille soit acceptable
+      // Remove old entries until size is acceptable
       for (const [cacheKey, metadata] of entries) {
-        if (currentSize <= MAX_CACHE_SIZE_BYTES * 0.8) break; // Garde 80% de la limite
+        if (currentSize <= MAX_CACHE_SIZE_BYTES * 0.8) break; // Keep 80% of the limit
 
         try {
           const filePath = this._getCacheFilePath(cacheKey);
@@ -117,14 +117,14 @@ class ImageCacheService {
   }
 
   /**
-   * Récupère une image depuis le cache ou la télécharge
-   * @param {string} url - URL de l'image
-   * @returns {Promise<string>} - URI locale de l'image
+   * Retrieve an image from cache or download it
+   * @param {string} url - Image URL
+   * @returns {Promise<string>} - Local image URI
    */
   async getImage(url) {
     if (!url) return null;
 
-    // Pour le web, retourne directement l'URL
+    // For web, return the URL directly
     if (Platform.OS === 'web') {
       return url;
     }
@@ -133,11 +133,11 @@ class ImageCacheService {
     const filePath = this._getCacheFilePath(cacheKey);
 
     try {
-      // Vérifie si l'image existe déjà en cache
+      // Check if the image already exists in cache
       const fileInfo = await FileSystem.getInfoAsync(filePath);
 
       if (fileInfo.exists) {
-        // Met à jour la date du dernier accès
+        // Update the last access date
         const index = await this._getCacheIndex();
         if (index[cacheKey]) {
           index[cacheKey].lastAccess = Date.now();
@@ -146,11 +146,11 @@ class ImageCacheService {
         return filePath;
       }
 
-      // Télécharge l'image
+      // Download the image
       const downloadResult = await FileSystem.downloadAsync(url, filePath);
 
       if (downloadResult.status === 200) {
-        // Met à jour l'index avec les métadonnées
+        // Update the index with metadata
         const index = await this._getCacheIndex();
         const fileInfo = await FileSystem.getInfoAsync(filePath);
 
@@ -163,7 +163,7 @@ class ImageCacheService {
 
         await this._updateCacheIndex(index);
 
-        // Vérifie la taille du cache et nettoie si nécessaire
+        // Check cache size and clean up if necessary
         const cacheSize = await this._getCacheSize();
         if (cacheSize > MAX_CACHE_SIZE_BYTES) {
           await this._cleanupCache();
@@ -172,17 +172,17 @@ class ImageCacheService {
         return filePath;
       } else {
         console.warn('Failed to download image:', url, downloadResult.status);
-        return url; // Fallback sur l'URL originale
+        return url; // Fallback to original URL
       }
     } catch (error) {
       console.error('Error getting cached image:', error);
-      return url; // Fallback sur l'URL originale
+      return url; // Fallback to original URL
     }
   }
 
   /**
-   * Précharge plusieurs images en arrière-plan
-   * @param {string[]} urls - Liste d'URLs à précharger
+   * Preload multiple images in the background
+   * @param {string[]} urls - List of URLs to preload
    */
   async preloadImages(urls) {
     if (Platform.OS === 'web') return;
@@ -198,18 +198,18 @@ class ImageCacheService {
   }
 
   /**
-   * Vide complètement le cache
+   * Clear the entire cache
    */
   async clearCache() {
     try {
-      // Supprime tous les fichiers du répertoire de cache
+      // Delete all files from the cache directory
       const dirInfo = await FileSystem.getInfoAsync(this.cacheDir);
       if (dirInfo.exists) {
         await FileSystem.deleteAsync(this.cacheDir, { idempotent: true });
         await FileSystem.makeDirectoryAsync(this.cacheDir, { intermediates: true });
       }
 
-      // Réinitialise l'index
+      // Reset the index
       await AsyncStorage.removeItem(CACHE_INDEX_KEY);
 
       console.log('Image cache cleared successfully');
@@ -219,7 +219,7 @@ class ImageCacheService {
   }
 
   /**
-   * Récupère des statistiques sur le cache
+   * Get cache statistics
    */
   async getCacheStats() {
     try {
@@ -250,5 +250,5 @@ class ImageCacheService {
   }
 }
 
-// Export une instance singleton
+// Export a singleton instance
 export default new ImageCacheService();

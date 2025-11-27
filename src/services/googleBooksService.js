@@ -9,14 +9,14 @@ class GoogleBooksService {
         params: {
           q: query,
           maxResults,
-          langRestrict: 'fr', // Priorité au français
+          langRestrict: 'fr', // Priority to French language
         },
       });
 
       return this.formatSearchResults(response.data.items || []);
     } catch (error) {
-      console.error('Erreur recherche Google Books:', error);
-      throw new Error('Impossible de rechercher les livres');
+      console.error('Google Books search error:', error);
+      throw new Error('Unable to search for books');
     }
   }
 
@@ -35,7 +35,7 @@ class GoogleBooksService {
       }
       return null;
     } catch (error) {
-      console.error('Erreur recherche ISBN:', error);
+      console.error('ISBN search error:', error);
       return null;
     }
   }
@@ -45,8 +45,8 @@ class GoogleBooksService {
       const response = await axios.get(`${GOOGLE_BOOKS_API_URL}/${volumeId}`);
       return this.formatBookInfo(response.data);
     } catch (error) {
-      console.error('Erreur détails livre:', error);
-      throw new Error('Impossible de récupérer les détails du livre');
+      console.error('Book details error:', error);
+      throw new Error('Unable to retrieve book details');
     }
   }
 
@@ -61,16 +61,16 @@ class GoogleBooksService {
     return {
       id: item.id,
       googleBooksId: item.id,
-      title: volumeInfo.title || 'Titre non disponible',
+      title: volumeInfo.title || 'Title unavailable',
       subtitle: volumeInfo.subtitle || '',
-      authors: volumeInfo.authors || ['Auteur inconnu'],
-      author: (volumeInfo.authors || ['Auteur inconnu']).join(', '),
+      authors: volumeInfo.authors || ['Unknown author'],
+      author: (volumeInfo.authors || ['Unknown author']).join(', '),
       publisher: volumeInfo.publisher || '',
       publishedDate: volumeInfo.publishedDate || '',
-      description: volumeInfo.description || 'Aucune description disponible',
+      description: volumeInfo.description || 'No description available',
       pageCount: volumeInfo.pageCount || 0,
       categories: volumeInfo.categories || [],
-      genre: (volumeInfo.categories || ['Non classé'])[0],
+      genre: (volumeInfo.categories || ['Uncategorized'])[0],
       language: volumeInfo.language || 'fr',
       
       cover: imageLinks.thumbnail || 
@@ -115,7 +115,7 @@ class GoogleBooksService {
         book: book,
       }));
     } catch (error) {
-      console.error('Erreur suggestions:', error);
+      console.error('Suggestions error:', error);
       return [];
     }
   }
