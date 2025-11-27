@@ -25,17 +25,18 @@ class ApiService {
   }
 
   determineBaseURL() {
-    if (__DEV__) {
-      // If localConfig exists, use it for ALL platforms
-      if (localConfig?.API_HOST) {
-        const port = localConfig.API_PORT ? `:${localConfig.API_PORT}` : '';
-        // If it's an external domain (contains a dot), no /api (handled by reverse proxy)
-        // Otherwise (localhost, IP), add /api
-        const apiSuffix = localConfig.API_HOST.includes('.') && !localConfig.API_HOST.match(/^\d/) ? '' : '/api';
-        return `http://${localConfig.API_HOST}${port}${apiSuffix}`;
-      }
+    // If localConfig exists, use it for ALL environments (dev AND production builds)
+    if (localConfig?.API_HOST) {
+      const port = localConfig.API_PORT ? `:${localConfig.API_PORT}` : '';
+      // If it's an external domain (contains a dot), no /api (handled by reverse proxy)
+      // Otherwise (localhost, IP), add /api
+      const apiSuffix = localConfig.API_HOST.includes('.') && !localConfig.API_HOST.match(/^\d/) ? '' : '/api';
+      const protocol = localConfig.API_HOST.includes('.') && !localConfig.API_HOST.match(/^\d/) ? 'https' : 'http';
+      return `${protocol}://${localConfig.API_HOST}${port}${apiSuffix}`;
+    }
 
-      // Otherwise, auto-detect by platform
+    if (__DEV__) {
+      // Otherwise, auto-detect by platform (dev mode only)
       if (Platform.OS === 'android') {
         const { manifest } = Constants;
         if (manifest?.debuggerHost) {
@@ -49,6 +50,8 @@ class ApiService {
         return `http://localhost:3000/api`;
       }
     } else {
+      // Production fallback - should not reach here if localConfig is set
+      console.warn('⚠️ No API configuration found! Please create src/config/local.js');
       return 'https://your-production-api.com';
     }
   }
