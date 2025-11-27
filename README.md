@@ -99,6 +99,25 @@ RATE_LIMIT_WINDOW_MS=900000
 RATE_LIMIT_MAX_REQUESTS=100
 ```
 
+## Database Architecture
+
+This project uses a hybrid database approach with two ORMs:
+
+### What's an ORM?
+An ORM (Object-Relational Mapping) is a tool that lets you interact with databases using JavaScript objects instead of writing raw SQL queries. It makes database operations simpler and more intuitive.
+
+### Our Setup
+- **Sequelize + PostgreSQL**: Handles relational data that needs strong consistency and relationships
+  - Users (authentication, roles, profiles)
+  - Libraries (multi-tenant settings)
+  - Loans (tracking who borrowed what, with due dates and fees)
+
+- **Mongoose + MongoDB**: Handles flexible, document-based data
+  - Books (rich metadata that can vary between entries)
+  - Enables full-text search on book content
+
+This setup combines the best of both worlds: PostgreSQL's reliability for critical data and MongoDB's flexibility for content-heavy documents.
+
 ## User Roles
 
 - **User**: Browse books, borrow/return books, view profile
