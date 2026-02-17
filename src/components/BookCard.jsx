@@ -1,11 +1,13 @@
 import React from 'react';
-import { View, StyleSheet, Text, TouchableOpacity, Image } from 'react-native';
+import { View, StyleSheet, Text, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { globalStyles, mixins } from '../styles/globalStyles';
 import { COLORS, SPACING } from '../constants';
+import SafeImage from './SafeImage';
+import { useImagePreload } from '../hooks/useImagePreload';
 
-const BookCard = ({ 
-  book, 
+const BookCard = ({
+  book,
   onPress,
   variant = 'default', // 'default', 'horizontal', 'compact'
   showLocation = true,
@@ -19,6 +21,9 @@ const BookCard = ({
     location: book?.library?.location || book?.location || null,
     genre: book?.genre || book?.categories?.[0] || null,
   };
+
+  // Précharge l'image en arrière-plan
+  useImagePreload(bookData.cover);
 
   const getStatusInfo = (status) => {
     switch (status) {
@@ -59,25 +64,26 @@ const BookCard = ({
 
   const renderCover = () => {
     const coverStyle = variant === 'compact' ? styles.compactCover :
-                      variant === 'horizontal' ? styles.horizontalCover : 
+                      variant === 'horizontal' ? styles.horizontalCover :
                       styles.cover;
 
     if (bookData.cover) {
       return (
-        <Image 
-          source={{ uri: bookData.cover }} 
+        <SafeImage
+          source={{ uri: bookData.cover }}
           style={coverStyle}
           resizeMode="cover"
+          fallbackIcon="book"
         />
       );
     }
-    
+
     return (
       <View style={[coverStyle, styles.placeholderCover]}>
-        <Ionicons 
-          name="book" 
-          size={variant === 'compact' ? 20 : variant === 'horizontal' ? 24 : 30} 
-          color={COLORS.textPrimary} 
+        <Ionicons
+          name="book"
+          size={variant === 'compact' ? 20 : variant === 'horizontal' ? 24 : 30}
+          color={COLORS.textPrimary}
         />
       </View>
     );

@@ -14,6 +14,7 @@ Library App is a multi-tenant library management system that allows managing mul
 - React Native Paper for UI
 - Axios for HTTP requests
 - AsyncStorage for local data
+- Expo FileSystem for image caching
 
 ### Backend
 - Express.js 4.18.2
@@ -36,6 +37,7 @@ Library App is a multi-tenant library management system that allows managing mul
 - Full-text search on books
 - Google Books API integration for enriching book data
 - Role-based navigation and permissions
+- **Image caching system** for offline access and improved performance (see [docs/IMAGE_CACHE.md](docs/IMAGE_CACHE.md))
 
 ## Quick Start
 
@@ -98,6 +100,25 @@ CORS_ORIGIN=*
 RATE_LIMIT_WINDOW_MS=900000
 RATE_LIMIT_MAX_REQUESTS=100
 ```
+
+## Database Architecture
+
+This project uses a hybrid database approach with two ORMs:
+
+### What's an ORM?
+An ORM (Object-Relational Mapping) is a tool that lets you interact with databases using JavaScript objects instead of writing raw SQL queries. It makes database operations simpler and more intuitive.
+
+### Our Setup
+- **Sequelize + PostgreSQL**: Handles relational data that needs strong consistency and relationships
+  - Users (authentication, roles, profiles)
+  - Libraries (multi-tenant settings)
+  - Loans (tracking who borrowed what, with due dates and fees)
+
+- **Mongoose + MongoDB**: Handles flexible, document-based data
+  - Books (rich metadata that can vary between entries)
+  - Enables full-text search on book content
+
+This setup combines the best of both worlds: PostgreSQL's reliability for critical data and MongoDB's flexibility for content-heavy documents.
 
 ## User Roles
 

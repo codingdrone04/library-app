@@ -101,12 +101,25 @@ class GoogleBooksService {
     }
 
     const imageLinks = volumeInfo.imageLinks || {};
-    const cover = imageLinks.thumbnail ||
-                  imageLinks.small ||
-                  imageLinks.medium ||
-                  imageLinks.large ||
-                  imageLinks.extraLarge ||
-                  null;
+    let cover = imageLinks.thumbnail ||
+                imageLinks.small ||
+                imageLinks.medium ||
+                imageLinks.large ||
+                imageLinks.extraLarge ||
+                null;
+
+    // Force HTTPS for image URLs (Android blocks HTTP in production)
+    if (cover && cover.startsWith('http:')) {
+      cover = cover.replace('http:', 'https:');
+    }
+
+    // Also force HTTPS for all imageLinks
+    const secureImageLinks = {};
+    Object.keys(imageLinks).forEach(key => {
+      if (imageLinks[key] && typeof imageLinks[key] === 'string') {
+        secureImageLinks[key] = imageLinks[key].replace('http:', 'https:');
+      }
+    });
 
     let description = volumeInfo.description || '';
     if (description) {
@@ -143,7 +156,7 @@ class GoogleBooksService {
         maturityRating: volumeInfo.maturityRating,
         allowAnonLogging: accessInfo.allowAnonLogging,
         contentVersion: volumeInfo.contentVersion,
-        imageLinks
+        imageLinks: secureImageLinks
       },
       
       isEnriched: true,
